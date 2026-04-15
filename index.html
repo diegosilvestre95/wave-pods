@@ -10,20 +10,20 @@
 <style>
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+  background: #f5f6fa;
 }
 
 /* HEADER */
 header {
-  background: black;
+  background: #0a0a0a;
   padding: 20px;
   text-align: center;
 }
 
 .logo {
-  font-size: 26px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   background: linear-gradient(90deg,#2f80ed,#bb6bd9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -35,29 +35,33 @@ nav {
   justify-content: center;
   gap: 30px;
   background: #fff;
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
+  padding: 14px;
+  border-bottom: 1px solid #eee;
 }
 
 nav button {
   background: none;
   border: none;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  color: #555;
 }
 
-/* WRAPPER CENTRAL */
+nav button:hover {
+  color: #000;
+}
+
+/* LAYOUT */
 .wrapper {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: auto;
 }
 
-/* CONTAINER */
 .container {
-  padding: 20px;
+  padding: 25px;
 }
 
-/* GRID DASH */
+/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
@@ -66,22 +70,39 @@ nav button {
 
 /* CARD */
 .card {
-  background: #fff;
-  padding: 18px;
-  border-radius: 12px;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 /* TEXT */
-.stat-title { font-size: 13px; color: #888; }
-.stat-value { font-size: 20px; font-weight: bold; }
+.stat-title {
+  font-size: 13px;
+  color: #888;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: bold;
+}
+
 .green { color: #27ae60; }
 
 /* TABLE */
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
-th, td {
+
+th {
+  text-align: left;
+  font-size: 13px;
+  color: #888;
+}
+
+td, th {
   padding: 10px;
   border-bottom: 1px solid #eee;
 }
@@ -112,7 +133,7 @@ input, select {
 
 /* BUTTON */
 button.main {
-  background: black;
+  background: #0a0a0a;
   color: white;
   padding: 12px;
   border-radius: 8px;
@@ -128,16 +149,29 @@ button.main {
   padding: 8px;
   border-radius: 6px;
   margin: 10px 0;
-  cursor: pointer;
 }
 
 /* LOGIN */
 .login-box {
   max-width: 400px;
-  margin: 100px auto;
+  margin: 120px auto;
 }
 
 .hidden { display: none; }
+
+/* CHART */
+.chart {
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.bar {
+  flex: 1;
+  background: #2f80ed;
+  border-radius: 4px;
+}
 </style>
 </head>
 
@@ -171,44 +205,53 @@ button.main {
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="container">
-  <div class="grid">
-    <div class="card">
-      <div class="stat-title">Investido</div>
-      <div class="stat-value">R$ <span id="investido"></span></div>
-    </div>
 
-    <div class="card">
-      <div class="stat-title">Receita</div>
-      <div class="stat-value">R$ <span id="receita"></span></div>
-    </div>
-
-    <div class="card">
-      <div class="stat-title">Lucro</div>
-      <div class="stat-value green">R$ <span id="lucro"></span></div>
-    </div>
+<div class="grid">
+  <div class="card">
+    <div class="stat-title">Investido</div>
+    <div class="stat-value">R$ <span id="investido"></span></div>
   </div>
+
+  <div class="card">
+    <div class="stat-title">Receita</div>
+    <div class="stat-value">R$ <span id="receita"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="stat-title">Lucro</div>
+    <div class="stat-value green">R$ <span id="lucro"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="stat-title">Margem</div>
+    <div class="stat-value green"><span id="margem"></span>%</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Vendas (gráfico)</h3>
+  <div id="grafico" class="chart"></div>
+</div>
+
+<div class="card">
+  <h3>Estoque</h3>
+  <table>
+    <thead>
+      <tr><th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th></tr>
+    </thead>
+    <tbody id="tabelaEstoque"></tbody>
+  </table>
+</div>
+
 </div>
 
 <!-- VENDAS -->
 <div id="vendas" class="container hidden">
   <div class="card">
     <h3>Nova Venda</h3>
-
-    <div class="form-group">
-      <label>Produto</label>
-      <select id="produto"></select>
-    </div>
-
-    <div class="form-group">
-      <label>Quantidade</label>
-      <input id="qtd" type="number">
-    </div>
-
-    <div class="form-group">
-      <label>Preço (R$)</label>
-      <input id="preco" type="number">
-    </div>
-
+    <select id="produto"></select>
+    <input id="qtd" type="number" placeholder="Quantidade">
+    <input id="preco" type="number" placeholder="Preço">
     <button class="main" onclick="registrarVenda()">Registrar</button>
   </div>
 </div>
@@ -220,34 +263,20 @@ button.main {
 
     <div id="listaProdutos"></div>
 
-    <button class="add-btn" onclick="adicionarProduto()">
-      + Adicionar produto
-    </button>
+    <button class="add-btn" onclick="adicionarProduto()">+ Produto</button>
 
-    <div class="form-group">
-      <label>Frete total (R$)</label>
-      <input id="freteCompra" type="number">
-    </div>
+    <input id="freteCompra" placeholder="Frete total">
 
-    <button class="main" onclick="registrarCompra()">
-      Registrar compra
-    </button>
+    <button class="main" onclick="registrarCompra()">Registrar</button>
   </div>
 </div>
 
 <!-- ESTOQUE -->
 <div id="estoque" class="container hidden">
   <div class="card">
-    <h3>Estoque</h3>
+    <h3>Estoque completo</h3>
     <table>
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Qtd</th>
-          <th>Custo</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaEstoque"></tbody>
+      <tbody id="tabelaEstoque2"></tbody>
     </table>
   </div>
 </div>
@@ -257,14 +286,6 @@ button.main {
   <div class="card">
     <h3>Histórico</h3>
     <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Tipo</th>
-          <th>Descrição</th>
-          <th>Valor</th>
-        </tr>
-      </thead>
       <tbody id="tabelaHistorico"></tbody>
     </table>
   </div>
@@ -275,174 +296,140 @@ button.main {
 
 <script>
 const supabaseClient = supabase.createClient(
-  "https://xxzvdwgcgcxycihswnyq.supabase.co",
-  "sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc"
+"https://xxzvdwgcgcxycihswnyq.supabase.co",
+"sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc"
 );
 
-// LOGIN
 function fazerLogin(){
-  if(userInput.value==="Admin" && passInput.value==="Wave@2026"){
-    localStorage.setItem("logado","true");
-    iniciar();
-  }
+if(userInput.value==="Admin" && passInput.value==="Wave@2026"){
+localStorage.setItem("logado","true");
+iniciar();
+}
 }
 
 if(localStorage.getItem("logado")) iniciar();
 
 function iniciar(){
-  loginTela.style.display="none";
-  app.classList.remove("hidden");
-  carregarProdutos();
-  dashboard();
-  carregarHistorico();
+loginTela.style.display="none";
+app.classList.remove("hidden");
+carregarProdutos();
+dashboard();
+carregarHistorico();
 }
 
-// TROCAR TELA
 function trocarTela(t){
-  ["dashboard","vendas","compras","estoque","historico"]
-  .forEach(x=>document.getElementById(x).classList.add("hidden"));
-  document.getElementById(t).classList.remove("hidden");
+["dashboard","vendas","compras","estoque","historico"]
+.forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(t).classList.remove("hidden");
 }
 
-// PRODUTOS
 async function carregarProdutos(){
-  const {data}=await supabaseClient.from("produtos").select("*");
-  produto.innerHTML="";
-  data.forEach(p=>{
-    produto.innerHTML+=`<option value="${p.id}">${p.nome} (${p.quantidade})</option>`;
-  });
+const {data}=await supabaseClient.from("produtos").select("*");
+produto.innerHTML="";
+data.forEach(p=>{
+produto.innerHTML+=`<option value="${p.id}">${p.nome}</option>`;
+});
 }
 
-// ADICIONAR PRODUTO
 function adicionarProduto(){
-  const div=document.createElement("div");
-  div.classList.add("form-grid");
+const div=document.createElement("div");
+div.classList.add("form-grid");
 
-  div.innerHTML=`
-    <div class="form-group">
-      <label>Produto</label>
-      <input class="nome">
-    </div>
-    <div class="form-group">
-      <label>Qtd</label>
-      <input type="number" class="qtd">
-    </div>
-    <div class="form-group">
-      <label>Custo</label>
-      <input type="number" class="custo">
-    </div>
-  `;
+div.innerHTML=`
+<input class="nome" placeholder="Produto">
+<input class="qtd" type="number" placeholder="Qtd">
+<input class="custo" type="number" placeholder="Custo">
+`;
 
-  listaProdutos.appendChild(div);
+listaProdutos.appendChild(div);
 }
 adicionarProduto();
 
-// VENDA
 async function registrarVenda(){
-  const id=produto.value;
-  const q=parseInt(qtd.value);
-  const precoVenda=parseFloat(preco.value);
+const id=produto.value;
+const q=parseInt(qtd.value);
+const precoVenda=parseFloat(preco.value);
 
-  const {data:prod}=await supabaseClient.from("produtos").select("*").eq("id",id).single();
+const {data:prod}=await supabaseClient.from("produtos").select("*").eq("id",id).single();
 
-  await supabaseClient.from("vendas").insert({
-    produto_id:id,quantidade:q,preco_venda:precoVenda
-  });
+await supabaseClient.from("vendas").insert({produto_id:id,quantidade:q,preco_venda:precoVenda});
 
-  await supabaseClient.from("produtos")
-    .update({quantidade:prod.quantidade-q})
-    .eq("id",id);
+await supabaseClient.from("produtos").update({quantidade:prod.quantidade-q}).eq("id",id);
 
-  await supabaseClient.from("historico").insert({
-    tipo:"Venda",
-    descricao:prod.nome+" ("+q+")",
-    valor:precoVenda*q
-  });
+await supabaseClient.from("historico").insert({
+tipo:"Venda",
+descricao:prod.nome,
+valor:precoVenda*q
+});
 
-  dashboard();
-  carregarHistorico();
+dashboard();
 }
 
-// COMPRA
 async function registrarCompra(){
-  const itens=document.querySelectorAll("#listaProdutos .form-grid");
-  const frete=parseFloat(freteCompra.value||0);
+const itens=document.querySelectorAll("#listaProdutos .form-grid");
 
-  for(let item of itens){
-    const nome=item.querySelector(".nome").value;
-    const qtd=parseInt(item.querySelector(".qtd").value);
-    const custo=parseFloat(item.querySelector(".custo").value);
+for(let item of itens){
+const nome=item.querySelector(".nome").value;
+const qtd=parseInt(item.querySelector(".qtd").value);
+const custo=parseFloat(item.querySelector(".custo").value);
 
-    await supabaseClient.from("compras").insert({
-      nome,quantidade:qtd,custo,frete:0
-    });
-
-    await supabaseClient.from("produtos").insert({
-      nome,quantidade:qtd,custo
-    });
-
-    await supabaseClient.from("historico").insert({
-      tipo:"Compra",
-      descricao:`${nome} (${qtd})`,
-      valor:custo*qtd
-    });
-  }
-
-  if(frete>0){
-    await supabaseClient.from("historico").insert({
-      tipo:"Frete",
-      descricao:"Frete da compra",
-      valor:frete
-    });
-  }
-
-  alert("Compra registrada!");
-  location.reload();
+await supabaseClient.from("produtos").insert({nome,quantidade:qtd,custo});
 }
 
-// DASHBOARD
+alert("Compra registrada");
+location.reload();
+}
+
 async function dashboard(){
-  const {data:compras}=await supabaseClient.from("compras").select("*");
-  const {data:vendas}=await supabaseClient.from("vendas").select("*");
-  const {data:produtos}=await supabaseClient.from("produtos").select("*");
+const {data:compras}=await supabaseClient.from("compras").select("*");
+const {data:vendas}=await supabaseClient.from("vendas").select("*");
+const {data:produtos}=await supabaseClient.from("produtos").select("*");
 
-  let totalC=0,totalV=0;
+let totalC=0,totalV=0;
 
-  compras.forEach(c=>totalC+=(c.custo*c.quantidade)+(c.frete||0));
-  vendas.forEach(v=>totalV+=v.preco_venda*v.quantidade);
+compras.forEach(c=>totalC+=(c.custo*c.quantidade));
+vendas.forEach(v=>totalV+=v.preco_venda*v.quantidade);
 
-  investido.innerText=totalC.toFixed(2);
-  receita.innerText=totalV.toFixed(2);
-  lucro.innerText=(totalV-totalC).toFixed(2);
+const lucro=totalV-totalC;
+const margem=(lucro/totalV*100)||0;
 
-  tabelaEstoque.innerHTML="";
-  produtos.forEach(p=>{
-    tabelaEstoque.innerHTML+=`
-      <tr>
-        <td>${p.nome}</td>
-        <td>${p.quantidade}</td>
-        <td>R$ ${p.custo}</td>
-      </tr>`;
-  });
+investido.innerText=totalC.toFixed(2);
+receita.innerText=totalV.toFixed(2);
+lucro.innerText=lucro.toFixed(2);
+margem.innerText=margem.toFixed(1);
+
+grafico.innerHTML="";
+vendas.forEach(v=>{
+const bar=document.createElement("div");
+bar.classList.add("bar");
+bar.style.height=(v.preco_venda*2)+"px";
+grafico.appendChild(bar);
+});
+
+tabelaEstoque.innerHTML="";
+produtos.forEach(p=>{
+const total=p.quantidade*p.custo;
+tabelaEstoque.innerHTML+=`<tr>
+<td>${p.nome}</td>
+<td>${p.quantidade}</td>
+<td>${p.custo}</td>
+<td>${total.toFixed(2)}</td>
+</tr>`;
+});
 }
 
-// HISTÓRICO
 async function carregarHistorico(){
-  const {data}=await supabaseClient
-    .from("historico")
-    .select("*")
-    .order("data",{ascending:false});
+const {data}=await supabaseClient.from("historico").select("*");
 
-  tabelaHistorico.innerHTML="";
-  data.forEach(h=>{
-    tabelaHistorico.innerHTML+=`
-      <tr>
-        <td>${new Date(h.data).toLocaleDateString()}</td>
-        <td>${h.tipo}</td>
-        <td>${h.descricao}</td>
-        <td>R$ ${h.valor}</td>
-      </tr>`;
-  });
+tabelaHistorico.innerHTML="";
+data.forEach(h=>{
+tabelaHistorico.innerHTML+=`
+<tr>
+<td>${h.tipo}</td>
+<td>${h.descricao}</td>
+<td>${h.valor}</td>
+</tr>`;
+});
 }
 </script>
 
