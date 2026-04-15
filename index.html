@@ -4,434 +4,993 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wave Pod</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+:root {
+  --bg:        #07070f;
+  --surface:   rgba(255,255,255,0.035);
+  --surface2:  rgba(255,255,255,0.06);
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.14);
+  --blue:      #2f80ed;
+  --violet:    #8b5cf6;
+  --pink:      #e040fb;
+  --grad:      linear-gradient(110deg,#2f80ed,#8b5cf6,#e040fb);
+  --gradsoft:  linear-gradient(110deg,rgba(47,128,237,.15),rgba(139,92,246,.12),rgba(224,64,251,.10));
+  --text:      #eeeef8;
+  --muted:     #7a7a9a;
+  --green:     #4ade80;
+  --red:       #f87171;
+  --amber:     #fbbf24;
+  --radius:    14px;
+  --radius-sm: 9px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: #f5f6fa;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* HEADER */
+/* Background mesh */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 700px 400px at 20% 0%, rgba(47,128,237,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 80% 10%, rgba(224,64,251,.12) 0%, transparent 65%),
+    radial-gradient(ellipse 600px 600px at 50% 90%, rgba(139,92,246,.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body > * { position: relative; z-index: 1; }
+
+/* ── HEADER ── */
 header {
-  background: #0a0a0a;
-  padding: 20px;
-  text-align: center;
+  background: rgba(7,7,15,.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.logo {
-  font-size: 28px;
-  font-weight: 700;
-  background: linear-gradient(90deg,#2f80ed,#bb6bd9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* ── LOGO SVG ── */
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* NAV */
+.logo-svg {
+  height: 36px;
+  width: auto;
+}
+
+/* ── NAV ── */
 nav {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  background: #fff;
-  padding: 14px;
-  border-bottom: 1px solid #eee;
+  gap: 4px;
+  background: rgba(7,7,15,.6);
+  backdrop-filter: blur(12px);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 nav button {
   background: none;
   border: none;
   cursor: pointer;
-  font-weight: 600;
-  color: #555;
-}
-
-nav button:hover {
-  color: #000;
-}
-
-/* LAYOUT */
-.wrapper {
-  max-width: 1100px;
-  margin: auto;
-}
-
-.container {
-  padding: 25px;
-}
-
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
-  gap: 15px;
-}
-
-/* CARD */
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* TEXT */
-.stat-title {
+  font-family: 'DM Sans', sans-serif;
   font-size: 13px;
-  color: #888;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 8px 18px;
+  border-radius: 8px;
+  transition: color .2s, background .2s;
+  letter-spacing: .02em;
+}
+
+nav button:hover { color: var(--text); background: var(--surface2); }
+nav button.active {
+  color: var(--text);
+  background: var(--surface2);
+  box-shadow: inset 0 0 0 1px var(--border2);
+}
+
+/* ── WRAPPER ── */
+.wrapper { max-width: 1140px; margin: auto; }
+.container { padding: 32px 28px; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color .2s;
+}
+
+.card:hover { border-color: var(--border2); }
+
+/* ── STATS GRID ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 800px) {
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, border-color .2s;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradsoft);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.stat-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+.stat-card:hover::before { opacity: 1; }
+
+.stat-icon {
+  font-size: 18px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.stat-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
 }
 
 .stat-value {
-  font-size: 22px;
-  font-weight: bold;
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
 }
 
-.green { color: #27ae60; }
+.stat-value.green { color: var(--green); }
+.stat-value.red   { color: var(--red); }
 
-/* TABLE */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+.stat-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
 }
 
-th {
-  text-align: left;
-  font-size: 13px;
-  color: #888;
-}
-
-td, th {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-/* FORM */
-.form-grid {
+/* ── DASHBOARD BOTTOM GRID ── */
+.dash-bottom {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
+@media (max-width: 760px) { .dash-bottom { grid-template-columns: 1fr; } }
 
-label {
-  font-size: 12px;
-  color: #666;
-}
-
-/* INPUT */
-input, select {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-/* BUTTON */
-button.main {
-  background: #0a0a0a;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.add-btn {
-  background: #2f80ed;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  margin: 10px 0;
-}
-
-/* LOGIN */
-.login-box {
-  max-width: 400px;
-  margin: 120px auto;
-}
-
-.hidden { display: none; }
-
-/* CHART */
-.chart {
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-}
+/* ── CHART ── */
+.chart-wrap { height: 160px; display: flex; align-items: flex-end; gap: 6px; padding-top: 10px; }
 
 .bar {
   flex: 1;
-  background: #2f80ed;
-  border-radius: 4px;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg,#8b5cf6,#2f80ed);
+  min-height: 4px;
+  transition: opacity .2s;
 }
+
+.bar:hover { opacity: .75; }
+
+.chart-empty {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  height: 100%;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius-sm);
+}
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+
+th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.badge-green { background: rgba(74,222,128,.12); color: var(--green); }
+.badge-red   { background: rgba(248,113,113,.12); color: var(--red); }
+.badge-amber { background: rgba(251,191,36,.12);  color: var(--amber); }
+
+/* ── FORM SECTION ── */
+.form-section { margin-bottom: 20px; }
+.form-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* ── FORM GRID ── */
+.form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.fg-3 { grid-template-columns: 2fr 1fr 1fr; }
+.fg-2 { grid-template-columns: 1fr 1fr; }
+.fg-3v { grid-template-columns: 2fr 1fr 1fr auto; align-items: end; }
+
+@media (max-width: 600px) {
+  .fg-3, .fg-2, .fg-3v { grid-template-columns: 1fr; }
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+/* ── INPUTS ── */
+input, select {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  width: 100%;
+}
+
+input::placeholder { color: var(--muted); }
+input:focus, select:focus { border-color: var(--violet); background: rgba(139,92,246,.08); }
+
+select option { background: #13131f; color: var(--text); }
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 22px 0;
+}
+
+/* ── PREVIEW BOX ── */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.preview-item { text-align: center; }
+.preview-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.preview-value { font-family: 'Syne',sans-serif; font-size: 18px; font-weight: 700; margin-top: 4px; }
+.preview-value.green { color: var(--green); }
+.preview-value.red   { color: var(--red); }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background: var(--grad);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: opacity .2s, transform .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+.btn-primary:active { transform: scale(.98); }
+
+.btn-ghost {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.btn-ghost:hover { background: rgba(255,255,255,.1); }
+
+.btn-remove {
+  background: rgba(248,113,113,.12);
+  color: var(--red);
+  border: 1px solid rgba(248,113,113,.2);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.btn-remove:hover { background: rgba(248,113,113,.22); }
+
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* ── PRODUCT ROW (compras) ── */
+.product-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .product-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── LOGIN ── */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 12px 0 0;
+  letter-spacing: .04em;
+}
+
+.login-fields { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── HISTORICO ── */
+.hist-tipo { font-size: 11px; font-weight: 600; }
+.hist-compra { color: var(--red); }
+.hist-venda  { color: var(--green); }
+
+/* ── UTILS ── */
+.hidden { display: none !important; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: rgba(20,20,36,.96);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  font-size: 14px;
+  color: var(--text);
+  backdrop-filter: blur(20px);
+  z-index: 999;
+  animation: fadeUp .3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.empty span { display: block; font-size: 28px; margin-bottom: 8px; }
 </style>
 </head>
 
 <body>
 
+<!-- ══ LOGIN ══ -->
+<div id="loginTela" class="login-wrap">
+  <div class="login-box">
+    <div class="login-header">
+      <svg class="logo-svg" style="height:44px;width:auto" viewBox="0 0 260 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#2f80ed"/>
+            <stop offset="50%" stop-color="#8b5cf6"/>
+            <stop offset="100%" stop-color="#e040fb"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 25 L18 25 L22 10 L26 40 L30 25 L38 25" stroke="#2f80ed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <text x="46" y="35" font-family="Syne,sans-serif" font-weight="800" font-size="26" fill="url(#lg1)">WAVEPOD</text>
+        <path d="M222 25 L230 25 L234 14 L238 36 L242 25 L250 25" stroke="#e040fb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <h2>Acesso restrito</h2>
+    </div>
+    <div class="card login-fields">
+      <div class="form-group">
+        <label>Usuário</label>
+        <input id="userInput" placeholder="Digite seu usuário">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input id="passInput" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="fazerLogin()">
+        Entrar →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" class="hidden">
+
 <header>
-  <div class="logo">WAVEPOD</div>
+  <svg class="logo-svg" viewBox="0 0 260 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#2f80ed"/>
+        <stop offset="50%" stop-color="#8b5cf6"/>
+        <stop offset="100%" stop-color="#e040fb"/>
+      </linearGradient>
+    </defs>
+    <path d="M10 25 L18 25 L22 10 L26 40 L30 25 L38 25" stroke="#2f80ed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <text x="46" y="35" font-family="Syne,sans-serif" font-weight="800" font-size="26" fill="url(#lg2)">WAVEPOD</text>
+    <path d="M222 25 L230 25 L234 14 L238 36 L242 25 L250 25" stroke="#e040fb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
 </header>
 
 <nav>
-  <button onclick="trocarTela('dashboard')">Dashboard</button>
-  <button onclick="trocarTela('vendas')">Vendas</button>
-  <button onclick="trocarTela('compras')">Compras</button>
-  <button onclick="trocarTela('estoque')">Estoque</button>
-  <button onclick="trocarTela('historico')">Histórico</button>
+  <button id="nav-dashboard" onclick="trocarTela('dashboard')">Dashboard</button>
+  <button id="nav-vendas"    onclick="trocarTela('vendas')">Vendas</button>
+  <button id="nav-compras"   onclick="trocarTela('compras')">Compras</button>
+  <button id="nav-estoque"   onclick="trocarTela('estoque')">Estoque</button>
+  <button id="nav-historico" onclick="trocarTela('historico')">Histórico</button>
 </nav>
 
 <div class="wrapper">
 
-<!-- LOGIN -->
-<div id="loginTela" class="login-box">
-  <div class="card">
-    <h2>Login</h2>
-    <input id="userInput" placeholder="Usuário">
-    <input id="passInput" type="password" placeholder="Senha">
-    <button class="main" onclick="fazerLogin()">Entrar</button>
-  </div>
-</div>
-
-<div id="app" class="hidden">
-
-<!-- DASHBOARD -->
+<!-- ══ DASHBOARD ══ -->
 <div id="dashboard" class="container">
 
-<div class="grid">
-  <div class="card">
-    <div class="stat-title">Investido</div>
-    <div class="stat-value">R$ <span id="investido"></span></div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon">💸</span>
+      <div class="stat-title">Total investido</div>
+      <div class="stat-value">R$&thinsp;<span id="investido">0,00</span></div>
+      <div class="stat-sub">Custo acumulado de compras</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">💰</span>
+      <div class="stat-title">Receita total</div>
+      <div class="stat-value">R$&thinsp;<span id="receita">0,00</span></div>
+      <div class="stat-sub">Soma das vendas realizadas</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📈</span>
+      <div class="stat-title">Lucro líquido</div>
+      <div class="stat-value green">R$&thinsp;<span id="lucro">0,00</span></div>
+      <div class="stat-sub" id="margemSub">Margem: — %</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">👥</span>
+      <div class="stat-title">Lucro por sócio</div>
+      <div class="stat-value green">R$&thinsp;<span id="lucroPorSocio">0,00</span></div>
+      <div class="stat-sub">50% cada · divisão automática</div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="stat-title">Receita</div>
-    <div class="stat-value">R$ <span id="receita"></span></div>
+  <div class="dash-bottom">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 style="margin:0;font-family:Syne,sans-serif;font-size:15px;font-weight:700">Vendas recentes</h3>
+        <span id="totalVendasBadge" class="badge badge-green">0 vendas</span>
+      </div>
+      <div id="grafico" class="chart-wrap"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 style="margin:0;font-family:Syne,sans-serif;font-size:15px;font-weight:700">Estoque rápido</h3>
+        <span id="totalEstoqueBadge" class="badge badge-amber">0 produtos</span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Produto</th><th>Qtd</th><th>Total</th><th>Status</th></tr>
+        </thead>
+        <tbody id="tabelaEstoque"></tbody>
+      </table>
+      <div id="estoqueEmpty" class="empty hidden"><span>📦</span>Nenhum produto ainda</div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="stat-title">Lucro</div>
-    <div class="stat-value green">R$ <span id="lucro"></span></div>
-  </div>
-
-  <div class="card">
-    <div class="stat-title">Margem</div>
-    <div class="stat-value green"><span id="margem"></span>%</div>
-  </div>
 </div>
 
-<div class="card">
-  <h3>Vendas (gráfico)</h3>
-  <div id="grafico" class="chart"></div>
-</div>
-
-<div class="card">
-  <h3>Estoque</h3>
-  <table>
-    <thead>
-      <tr><th>Produto</th><th>Qtd</th><th>Custo</th><th>Total</th></tr>
-    </thead>
-    <tbody id="tabelaEstoque"></tbody>
-  </table>
-</div>
-
-</div>
-
-<!-- VENDAS -->
+<!-- ══ VENDAS ══ -->
 <div id="vendas" class="container hidden">
-  <div class="card">
-    <h3>Nova Venda</h3>
-    <select id="produto"></select>
-    <input id="qtd" type="number" placeholder="Quantidade">
-    <input id="preco" type="number" placeholder="Preço">
-    <button class="main" onclick="registrarVenda()">Registrar</button>
+  <h2 class="section-title">Registrar venda</h2>
+  <div class="card" style="max-width:640px">
+
+    <div class="form-grid fg-3">
+      <div class="form-group">
+        <label>Produto</label>
+        <select id="produto"></select>
+      </div>
+      <div class="form-group">
+        <label>Quantidade</label>
+        <input id="qtd" type="number" min="1" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Preço de venda (R$)</label>
+        <input id="preco" type="number" step="0.01" placeholder="0,00">
+      </div>
+    </div>
+
+    <div class="preview-grid" id="previewVenda" style="display:none">
+      <div class="preview-item">
+        <div class="preview-label">Receita</div>
+        <div class="preview-value" id="prevReceita">—</div>
+      </div>
+      <div class="preview-item">
+        <div class="preview-label">Custo estimado</div>
+        <div class="preview-value red" id="prevCusto">—</div>
+      </div>
+      <div class="preview-item">
+        <div class="preview-label">Lucro</div>
+        <div class="preview-value green" id="prevLucro">—</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="registrarVenda()">Registrar venda ✓</button>
+    </div>
   </div>
 </div>
 
-<!-- COMPRAS -->
+<!-- ══ COMPRAS ══ -->
 <div id="compras" class="container hidden">
-  <div class="card">
-    <h3>Nova Compra</h3>
+  <h2 class="section-title">Registrar compra</h2>
+  <div class="card" style="max-width:720px">
 
     <div id="listaProdutos"></div>
 
-    <button class="add-btn" onclick="adicionarProduto()">+ Produto</button>
+    <button class="btn-ghost" onclick="adicionarProduto()" style="margin-top:4px">+ Adicionar produto</button>
 
-    <input id="freteCompra" placeholder="Frete total">
+    <div class="divider"></div>
 
-    <button class="main" onclick="registrarCompra()">Registrar</button>
+    <div class="form-grid fg-2">
+      <div class="form-group">
+        <label>Frete total (R$)</label>
+        <input id="freteCompra" type="number" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group" style="justify-content:flex-end">
+        <div class="stat-card" style="background:var(--surface2);padding:14px 18px">
+          <div class="stat-title">Total da compra</div>
+          <div class="stat-value" style="font-size:20px">R$&thinsp;<span id="totalCompraPreview">0,00</span></div>
+          <div class="stat-sub">Você · R$<span id="totalSocio1">0,00</span> &nbsp;|&nbsp; Sócio · R$<span id="totalSocio2">0,00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="registrarCompra()">Registrar compra ✓</button>
+    </div>
   </div>
 </div>
 
-<!-- ESTOQUE -->
+<!-- ══ ESTOQUE ══ -->
 <div id="estoque" class="container hidden">
+  <h2 class="section-title">Estoque completo</h2>
   <div class="card">
-    <h3>Estoque completo</h3>
     <table>
+      <thead>
+        <tr><th>Produto</th><th>Quantidade</th><th>Custo unit.</th><th>Valor em estoque</th><th>Status</th></tr>
+      </thead>
       <tbody id="tabelaEstoque2"></tbody>
     </table>
+    <div id="estoqueEmpty2" class="empty hidden"><span>📦</span>Nenhum produto cadastrado</div>
   </div>
 </div>
 
-<!-- HISTÓRICO -->
+<!-- ══ HISTÓRICO ══ -->
 <div id="historico" class="container hidden">
+  <h2 class="section-title">Histórico de operações</h2>
   <div class="card">
-    <h3>Histórico</h3>
     <table>
+      <thead>
+        <tr><th>Tipo</th><th>Descrição</th><th>Valor</th></tr>
+      </thead>
       <tbody id="tabelaHistorico"></tbody>
     </table>
+    <div id="histEmpty" class="empty hidden"><span>🗂️</span>Sem registros ainda</div>
   </div>
 </div>
 
-</div>
-</div>
+</div><!-- /wrapper -->
+</div><!-- /app -->
 
 <script>
 const supabaseClient = supabase.createClient(
-"https://xxzvdwgcgcxycihswnyq.supabase.co",
-"sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc"
+  "https://xxzvdwgcgcxycihswnyq.supabase.co",
+  "sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc"
 );
 
-function fazerLogin(){
-if(userInput.value==="Admin" && passInput.value==="Wave@2026"){
-localStorage.setItem("logado","true");
-iniciar();
-}
-}
-
-if(localStorage.getItem("logado")) iniciar();
-
-function iniciar(){
-loginTela.style.display="none";
-app.classList.remove("hidden");
-carregarProdutos();
-dashboard();
-carregarHistorico();
+/* ── TOAST ── */
+function showToast(msg, icon='✓') {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span style="color:var(--green);font-size:16px">${icon}</span> ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
 }
 
-function trocarTela(t){
-["dashboard","vendas","compras","estoque","historico"]
-.forEach(x=>document.getElementById(x).classList.add("hidden"));
-document.getElementById(t).classList.remove("hidden");
+/* ── LOGIN ── */
+function fazerLogin() {
+  if (userInput.value === "Admin" && passInput.value === "Wave@2026") {
+    localStorage.setItem("logado", "true");
+    iniciar();
+  } else {
+    showToast('Credenciais incorretas', '⚠️');
+  }
 }
 
-async function carregarProdutos(){
-const {data}=await supabaseClient.from("produtos").select("*");
-produto.innerHTML="";
-data.forEach(p=>{
-produto.innerHTML+=`<option value="${p.id}">${p.nome}</option>`;
-});
+if (localStorage.getItem("logado")) iniciar();
+
+function iniciar() {
+  document.getElementById('loginTela').classList.add('hidden');
+  app.classList.remove("hidden");
+  carregarProdutos();
+  dashboard();
+  carregarHistorico();
 }
 
-function adicionarProduto(){
-const div=document.createElement("div");
-div.classList.add("form-grid");
+/* ── NAV ── */
+function trocarTela(t) {
+  ["dashboard","vendas","compras","estoque","historico"].forEach(x => {
+    document.getElementById(x).classList.add("hidden");
+    const btn = document.getElementById('nav-' + x);
+    if (btn) btn.classList.remove('active');
+  });
+  document.getElementById(t).classList.remove("hidden");
+  const activeBtn = document.getElementById('nav-' + t);
+  if (activeBtn) activeBtn.classList.add('active');
 
-div.innerHTML=`
-<input class="nome" placeholder="Produto">
-<input class="qtd" type="number" placeholder="Qtd">
-<input class="custo" type="number" placeholder="Custo">
-`;
-
-listaProdutos.appendChild(div);
+  if (t === 'estoque') carregarEstoqueCompleto();
 }
+
+/* ── PRODUTOS ── */
+async function carregarProdutos() {
+  const { data } = await supabaseClient.from("produtos").select("*");
+  produto.innerHTML = "";
+  if (data) data.forEach(p => {
+    produto.innerHTML += `<option value="${p.id}" data-custo="${p.custo}">${p.nome}</option>`;
+  });
+  produto.addEventListener('change', calcPreviewVenda);
+  qtd.addEventListener('input', calcPreviewVenda);
+  preco.addEventListener('input', calcPreviewVenda);
+}
+
+function calcPreviewVenda() {
+  const sel = produto.options[produto.selectedIndex];
+  const custo = sel ? parseFloat(sel.dataset.custo) || 0 : 0;
+  const q = parseFloat(qtd.value) || 0;
+  const p = parseFloat(preco.value) || 0;
+  if (q > 0 && p > 0) {
+    const rec = q * p;
+    const cst = q * custo;
+    const luc = rec - cst;
+    prevReceita.textContent = 'R$' + rec.toFixed(2);
+    prevCusto.textContent   = 'R$' + cst.toFixed(2);
+    prevLucro.textContent   = 'R$' + luc.toFixed(2);
+    prevLucro.className     = 'preview-value ' + (luc >= 0 ? 'green' : 'red');
+    previewVenda.style.display = 'grid';
+  } else {
+    previewVenda.style.display = 'none';
+  }
+}
+
+/* ── COMPRAS - PRODUTO LINE ── */
+function adicionarProduto() {
+  const div = document.createElement("div");
+  div.classList.add("product-row");
+  div.innerHTML = `
+    <div class="form-group"><label>Produto</label><input class="nome" placeholder="Nome do produto"></div>
+    <div class="form-group"><label>Qtd</label><input class="qtd" type="number" min="1" placeholder="0"></div>
+    <div class="form-group"><label>Custo unit. (R$)</label><input class="custo" type="number" step="0.01" placeholder="0,00"></div>
+    <button class="btn-remove" onclick="this.parentElement.remove();atualizarTotalCompra()">✕</button>
+  `;
+  listaProdutos.appendChild(div);
+  div.querySelectorAll('input').forEach(i => i.addEventListener('input', atualizarTotalCompra));
+  freteCompra.addEventListener('input', atualizarTotalCompra);
+}
+
 adicionarProduto();
 
-async function registrarVenda(){
-const id=produto.value;
-const q=parseInt(qtd.value);
-const precoVenda=parseFloat(preco.value);
-
-const {data:prod}=await supabaseClient.from("produtos").select("*").eq("id",id).single();
-
-await supabaseClient.from("vendas").insert({produto_id:id,quantidade:q,preco_venda:precoVenda});
-
-await supabaseClient.from("produtos").update({quantidade:prod.quantidade-q}).eq("id",id);
-
-await supabaseClient.from("historico").insert({
-tipo:"Venda",
-descricao:prod.nome,
-valor:precoVenda*q
-});
-
-dashboard();
+function atualizarTotalCompra() {
+  let total = 0;
+  document.querySelectorAll('#listaProdutos .product-row').forEach(row => {
+    const q = parseFloat(row.querySelector('.qtd').value) || 0;
+    const c = parseFloat(row.querySelector('.custo').value) || 0;
+    total += q * c;
+  });
+  total += parseFloat(freteCompra.value) || 0;
+  totalCompraPreview.textContent = total.toFixed(2);
+  totalSocio1.textContent = (total / 2).toFixed(2);
+  totalSocio2.textContent = (total / 2).toFixed(2);
 }
 
-async function registrarCompra(){
-const itens=document.querySelectorAll("#listaProdutos .form-grid");
+/* ── REGISTRAR VENDA ── */
+async function registrarVenda() {
+  const id = produto.value;
+  const q  = parseInt(qtd.value);
+  const precoVenda = parseFloat(preco.value);
+  if (!id || !q || !precoVenda) return showToast('Preencha todos os campos', '⚠️');
 
-for(let item of itens){
-const nome=item.querySelector(".nome").value;
-const qtd=parseInt(item.querySelector(".qtd").value);
-const custo=parseFloat(item.querySelector(".custo").value);
+  const { data: prod } = await supabaseClient.from("produtos").select("*").eq("id", id).single();
 
-await supabaseClient.from("produtos").insert({nome,quantidade:qtd,custo});
+  await supabaseClient.from("vendas").insert({ produto_id: id, quantidade: q, preco_venda: precoVenda });
+  await supabaseClient.from("produtos").update({ quantidade: prod.quantidade - q }).eq("id", id);
+  await supabaseClient.from("historico").insert({ tipo: "Venda", descricao: prod.nome, valor: precoVenda * q });
+
+  qtd.value = ''; preco.value = '';
+  previewVenda.style.display = 'none';
+  showToast(`Venda de ${prod.nome} registrada!`);
+  dashboard();
 }
 
-alert("Compra registrada");
-location.reload();
+/* ── REGISTRAR COMPRA ── */
+async function registrarCompra() {
+  const itens = document.querySelectorAll("#listaProdutos .product-row");
+  for (let item of itens) {
+    const nome  = item.querySelector(".nome").value;
+    const q     = parseInt(item.querySelector(".qtd").value);
+    const custo = parseFloat(item.querySelector(".custo").value);
+    if (!nome || !q || !custo) continue;
+    await supabaseClient.from("produtos").insert({ nome, quantidade: q, custo });
+  }
+  showToast('Compra registrada com sucesso!');
+  setTimeout(() => location.reload(), 1800);
 }
 
-async function dashboard(){
-const {data:compras}=await supabaseClient.from("compras").select("*");
-const {data:vendas}=await supabaseClient.from("vendas").select("*");
-const {data:produtos}=await supabaseClient.from("produtos").select("*");
+/* ── DASHBOARD ── */
+async function dashboard() {
+  const [{ data: compras }, { data: vendas }, { data: produtos }] = await Promise.all([
+    supabaseClient.from("compras").select("*"),
+    supabaseClient.from("vendas").select("*"),
+    supabaseClient.from("produtos").select("*"),
+  ]);
 
-let totalC=0,totalV=0;
+  let totalC = 0, totalV = 0;
+  (compras || []).forEach(c => totalC += c.custo * c.quantidade);
+  (vendas  || []).forEach(v => totalV += v.preco_venda * v.quantidade);
 
-compras.forEach(c=>totalC+=(c.custo*c.quantidade));
-vendas.forEach(v=>totalV+=v.preco_venda*v.quantidade);
+  const lucroVal = totalV - totalC;
+  const margem   = totalV > 0 ? (lucroVal / totalV * 100) : 0;
 
-const lucro=totalV-totalC;
-const margem=(lucro/totalV*100)||0;
+  investido.innerText      = totalC.toFixed(2);
+  receita.innerText        = totalV.toFixed(2);
+  document.getElementById('lucro').innerText = lucroVal.toFixed(2);
+  document.getElementById('lucro').parentElement.className =
+    'stat-value ' + (lucroVal >= 0 ? 'green' : 'red');
+  lucroPorSocio.innerText  = (lucroVal / 2).toFixed(2);
+  margemSub.innerText      = `Margem: ${margem.toFixed(1)}%`;
 
-investido.innerText=totalC.toFixed(2);
-receita.innerText=totalV.toFixed(2);
-lucro.innerText=lucro.toFixed(2);
-margem.innerText=margem.toFixed(1);
+  // Gráfico
+  const grafico = document.getElementById('grafico');
+  grafico.innerHTML = "";
+  if (!vendas || vendas.length === 0) {
+    grafico.innerHTML = '<div class="chart-empty">Nenhuma venda ainda</div>';
+  } else {
+    const maxVal = Math.max(...vendas.map(v => v.preco_venda * v.quantidade));
+    vendas.forEach(v => {
+      const val = v.preco_venda * v.quantidade;
+      const bar = document.createElement("div");
+      bar.classList.add("bar");
+      bar.style.height = Math.max(8, (val / maxVal) * 150) + "px";
+      bar.title = `R$ ${val.toFixed(2)}`;
+      grafico.appendChild(bar);
+    });
+  }
+  document.getElementById('totalVendasBadge').textContent = `${(vendas||[]).length} venda${(vendas||[]).length !== 1 ? 's' : ''}`;
 
-grafico.innerHTML="";
-vendas.forEach(v=>{
-const bar=document.createElement("div");
-bar.classList.add("bar");
-bar.style.height=(v.preco_venda*2)+"px";
-grafico.appendChild(bar);
-});
-
-tabelaEstoque.innerHTML="";
-produtos.forEach(p=>{
-const total=p.quantidade*p.custo;
-tabelaEstoque.innerHTML+=`<tr>
-<td>${p.nome}</td>
-<td>${p.quantidade}</td>
-<td>${p.custo}</td>
-<td>${total.toFixed(2)}</td>
-</tr>`;
-});
+  // Estoque rápido no dashboard
+  const tbody = document.getElementById('tabelaEstoque');
+  const empty = document.getElementById('estoqueEmpty');
+  tbody.innerHTML = "";
+  if (!produtos || produtos.length === 0) {
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    produtos.forEach(p => {
+      const total = (p.quantidade * p.custo).toFixed(2);
+      const low   = p.quantidade <= 2;
+      const out   = p.quantidade === 0;
+      const badge = out
+        ? `<span class="badge badge-red">Esgotado</span>`
+        : low
+        ? `<span class="badge badge-amber">Baixo</span>`
+        : `<span class="badge badge-green">OK</span>`;
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:500">${p.nome}</td>
+        <td>${p.quantidade}</td>
+        <td>R$ ${total}</td>
+        <td>${badge}</td>
+      </tr>`;
+    });
+  }
+  document.getElementById('totalEstoqueBadge').textContent = `${(produtos||[]).length} produto${(produtos||[]).length !== 1 ? 's' : ''}`;
 }
 
-async function carregarHistorico(){
-const {data}=await supabaseClient.from("historico").select("*");
-
-tabelaHistorico.innerHTML="";
-data.forEach(h=>{
-tabelaHistorico.innerHTML+=`
-<tr>
-<td>${h.tipo}</td>
-<td>${h.descricao}</td>
-<td>${h.valor}</td>
-</tr>`;
-});
+/* ── ESTOQUE COMPLETO ── */
+async function carregarEstoqueCompleto() {
+  const { data: produtos } = await supabaseClient.from("produtos").select("*");
+  const tbody = document.getElementById('tabelaEstoque2');
+  const empty = document.getElementById('estoqueEmpty2');
+  tbody.innerHTML = "";
+  if (!produtos || produtos.length === 0) {
+    empty.classList.remove('hidden'); return;
+  }
+  empty.classList.add('hidden');
+  produtos.forEach(p => {
+    const total = (p.quantidade * p.custo).toFixed(2);
+    const out   = p.quantidade === 0;
+    const low   = p.quantidade <= 2;
+    const badge = out
+      ? `<span class="badge badge-red">Esgotado</span>`
+      : low
+      ? `<span class="badge badge-amber">Estoque baixo</span>`
+      : `<span class="badge badge-green">OK</span>`;
+    tbody.innerHTML += `<tr>
+      <td style="font-weight:500">${p.nome}</td>
+      <td>${p.quantidade}</td>
+      <td>R$ ${parseFloat(p.custo).toFixed(2)}</td>
+      <td>R$ ${total}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
 }
+
+/* ── HISTÓRICO ── */
+async function carregarHistorico() {
+  const { data } = await supabaseClient.from("historico").select("*");
+  const tbody = document.getElementById('tabelaHistorico');
+  const empty = document.getElementById('histEmpty');
+  tbody.innerHTML = "";
+  if (!data || data.length === 0) {
+    empty.classList.remove('hidden'); return;
+  }
+  empty.classList.add('hidden');
+  data.forEach(h => {
+    const cls = h.tipo === 'Venda' ? 'hist-venda' : 'hist-compra';
+    tbody.innerHTML += `<tr>
+      <td><span class="hist-tipo ${cls}">${h.tipo}</span></td>
+      <td>${h.descricao}</td>
+      <td>R$ ${parseFloat(h.valor).toFixed(2)}</td>
+    </tr>`;
+  });
+}
+
+// Ativar nav inicial
+document.getElementById('nav-dashboard').classList.add('active');
 </script>
-
 </body>
 </html>
