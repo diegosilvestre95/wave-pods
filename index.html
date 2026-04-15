@@ -861,8 +861,6 @@ async function registrarVenda() {
 async function registrarCompra() {
   const itens = document.querySelectorAll("#listaProdutos .product-row");
 
-  let houveItem = false;
-
   for (let item of itens) {
     const nome  = item.querySelector(".nome").value;
     const q     = parseInt(item.querySelector(".qtd").value);
@@ -870,45 +868,20 @@ async function registrarCompra() {
 
     if (!nome || !q || !custo) continue;
 
-    houveItem = true;
-
-    // Atualiza ou cria produto
-    const { data: existente } = await supabaseClient
-      .from("produtos")
-      .select("*")
-      .eq("nome", nome)
-      .maybeSingle();
-
-    if (existente) {
-      await supabaseClient
-        .from("produtos")
-        .update({
-          quantidade: existente.quantidade + q,
-          custo: custo // mantém último custo
-        })
-        .eq("id", existente.id);
-    } else {
-      await supabaseClient
-        .from("produtos")
-        .insert({ nome, quantidade: q, custo });
-    }
-
-    // 🔥 REGISTRA COMPRA
-    await supabaseClient.from("compras").insert({
+    // mantém seu funcionamento atual (estoque)
+    await supabaseClient.from("produtos").insert({
       nome,
       quantidade: q,
       custo
     });
 
-    // 🔥 HISTÓRICO
-    await supabaseClient.from("historico").insert({
-      tipo: "Compra",
-      descricao: nome,
-      valor: custo * q
+      await supabaseClient.from("compras").insert({
+      nome,
+      quantidade: q,
+      custo
     });
   }
 
-  // 🔥 FRETE (AGORA ENTRA NO INVESTIMENTO)
   const frete = parseFloat(freteCompra.value) || 0;
 
   if (frete > 0) {
@@ -917,20 +890,9 @@ async function registrarCompra() {
       quantidade: 1,
       custo: frete
     });
-
-    await supabaseClient.from("historico").insert({
-      tipo: "Compra",
-      descricao: "Frete",
-      valor: frete
-    });
   }
-
-  if (!houveItem && frete === 0) {
-    return showToast('Adicione pelo menos um item ou frete', '⚠️');
-  }
-
   showToast('Compra registrada com sucesso!');
-  setTimeout(() => location.reload(), 1200);
+  setTimeout(() => location.reload(), 1800);
 }
 
 /* ── DASHBOARD ── */
@@ -941,92 +903,38 @@ async function dashboard() {
     supabaseClient.from("produtos").select("*"),
   ]);
 
-  let totalC = 0;
-  let totalV = 0;
-
-  // 🔥 INVESTIMENTO REAL (agora inclui frete também)
-  (compras || []).forEach(c => {
-    const valor = (c.custo || 0) * (c.quantidade || 1);
-    totalC += valor;
-  });
-
-  // 🔥 RECEITA
-  (vendas || []).forEach(v => {
-    totalV += (v.preco_venda || 0) * (v.quantidade || 0);
-  });
+  let totalC = 0, totalV = 0;
+  (compras || []).forEach(c => totalC += c.custo * c.quantidade);
+  (vendas  || []).forEach(v => totalV += v.preco_venda * v.quantidade);
 
   const lucroVal = totalV - totalC;
   const margem   = totalV > 0 ? (lucroVal / totalV * 100) : 0;
 
-  investido.innerText = totalC.toFixed(2);
-  receita.innerText   = totalV.toFixed(2);
-
-  const lucroEl = document.getElementById('lucro');
-  lucroEl.innerText = lucroVal.toFixed(2);
-  lucroEl.parentElement.className =
+  investido.innerText      = totalC.toFixed(2);
+  receita.innerText        = totalV.toFixed(2);
+  document.getElementById('lucro').innerText = lucroVal.toFixed(2);
+  document.getElementById('lucro').parentElement.className =
     'stat-value ' + (lucroVal >= 0 ? 'green' : 'red');
+  lucroPorSocio.innerText  = (lucroVal / 2).toFixed(2);
+  margemSub.innerText      = `Margem: ${margem.toFixed(1)}%`;
 
-  lucroPorSocio.innerText = (lucroVal / 2).toFixed(2);
-  margemSub.innerText     = `Margem: ${margem.toFixed(1)}%`;
-
-  // ── GRÁFICO ──
+  // Gráfico
   const grafico = document.getElementById('grafico');
   grafico.innerHTML = "";
-
   if (!vendas || vendas.length === 0) {
     grafico.innerHTML = '<div class="chart-empty">Nenhuma venda ainda</div>';
   } else {
-    const valores = vendas.map(v => v.preco_venda * v.quantidade);
-    const maxVal = Math.max(...valores);
-
+    const maxVal = Math.max(...vendas.map(v => v.preco_venda * v.quantidade));
     vendas.forEach(v => {
       const val = v.preco_venda * v.quantidade;
-
       const bar = document.createElement("div");
       bar.classList.add("bar");
       bar.style.height = Math.max(8, (val / maxVal) * 150) + "px";
       bar.title = `R$ ${val.toFixed(2)}`;
-
       grafico.appendChild(bar);
     });
   }
-
-  document.getElementById('totalVendasBadge').textContent =
-    `${(vendas || []).length} venda${(vendas || []).length !== 1 ? 's' : ''}`;
-
-  // ── ESTOQUE ──
-  const tbody = document.getElementById('tabelaEstoque');
-  const empty = document.getElementById('estoqueEmpty');
-
-  tbody.innerHTML = "";
-
-  if (!produtos || produtos.length === 0) {
-    empty.classList.remove('hidden');
-  } else {
-    empty.classList.add('hidden');
-
-    produtos.forEach(p => {
-      const total = (p.quantidade * p.custo).toFixed(2);
-
-      const status = p.quantidade === 0
-        ? '<span class="badge badge-red">Esgotado</span>'
-        : p.quantidade <= 2
-        ? '<span class="badge badge-amber">Baixo</span>'
-        : '<span class="badge badge-green">OK</span>';
-
-      tbody.innerHTML += `
-        <tr>
-          <td style="font-weight:500">${p.nome}</td>
-          <td>${p.quantidade}</td>
-          <td>R$ ${total}</td>
-          <td>${status}</td>
-        </tr>`;
-    });
-  }
-
-  document.getElementById('totalEstoqueBadge').textContent =
-    `${(produtos || []).length} produto${(produtos || []).length !== 1 ? 's' : ''}`;
-}
+  document.getElementById('totalVendasBadge').textContent = `${(vendas||[]).length} venda${(vendas||[]).length !== 1 ? 's' : ''}`;
 
   // Estoque rápido no dashboard
   const tbody = document.getElementById('tabelaEstoque');
