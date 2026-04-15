@@ -10,15 +10,15 @@
 <style>
 body {
   margin: 0;
-  font-family: Arial;
-  background: #f5f6fa;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f3f4f6;
 }
 
 /* HEADER */
 header {
-  background: black;
+  background: #000;
   color: white;
-  padding: 15px;
+  padding: 15px 25px;
   display: flex;
   justify-content: space-between;
 }
@@ -26,69 +26,105 @@ header {
 .logo {
   color: #2f80ed;
   font-weight: bold;
+  font-size: 18px;
 }
 
-/* MENU */
+/* NAV */
 nav {
   background: #fff;
-  padding: 10px;
+  padding: 12px 25px;
   display: flex;
-  gap: 20px;
+  gap: 25px;
   border-bottom: 1px solid #ddd;
 }
 
 nav button {
   background: none;
   border: none;
+  font-weight: 500;
   cursor: pointer;
-  font-weight: bold;
+  color: #555;
+}
+
+nav button:hover {
+  color: #000;
 }
 
 /* CONTAINER */
 .container {
-  padding: 20px;
+  padding: 25px;
 }
 
-/* CARD */
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-/* GRID DASH */
+/* DASH GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 20px;
 }
 
-.stat {
+/* CARDS */
+.card {
   background: #fff;
-  padding: 15px;
-  border-radius: 10px;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* BOTÃO */
+/* STATS */
+.stat-title {
+  font-size: 13px;
+  color: #888;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.green {
+  color: #27ae60;
+}
+
+/* TABELA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.status {
+  background: #e6f9ed;
+  color: #27ae60;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* BUTTON */
 button.main {
   background: black;
   color: white;
-  padding: 10px;
-  width: 100%;
+  padding: 12px;
   border-radius: 8px;
   border: none;
+  cursor: pointer;
 }
 
-input, select {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-}
-
-/* ESCONDER */
 .hidden { display: none; }
-
 </style>
 </head>
 
@@ -119,11 +155,50 @@ input, select {
 <div id="app" class="hidden">
 
 <div id="dashboard" class="container">
+
+  <h2>Dashboard</h2>
+  <p style="color:#888">Visão geral</p>
+
   <div class="grid">
-    <div class="stat">Investido: R$ <span id="investido">0</span></div>
-    <div class="stat">Receita: R$ <span id="receita">0</span></div>
-    <div class="stat">Lucro: R$ <span id="lucro">0</span></div>
+    <div class="card">
+      <div class="stat-title">Total investido</div>
+      <div class="stat-value">R$ <span id="investido">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-title">Receita total</div>
+      <div class="stat-value">R$ <span id="receita">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-title">Lucro líquido</div>
+      <div class="stat-value green">R$ <span id="lucro">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-title">Lucro por sócio</div>
+      <div class="stat-value green">R$ <span id="lucroSocio">0</span></div>
+    </div>
   </div>
+
+  <!-- ESTOQUE -->
+  <div class="card">
+    <h3>Estoque resumido</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>QTD</th>
+          <th>Custo médio</th>
+          <th>Valor em estoque</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaEstoque"></tbody>
+    </table>
+  </div>
+
+</div>
 </div>
 
 <div id="vendas" class="container hidden">
@@ -250,16 +325,39 @@ async function registrarCompra() {
 async function dashboard() {
   const { data: compras } = await supabaseClient.from("compras").select("*");
   const { data: vendas } = await supabaseClient.from("vendas").select("*");
+  const { data: produtos } = await supabaseClient.from("produtos").select("*");
 
   let totalCompras = 0;
   let totalVendas = 0;
 
-  compras.forEach(c => totalCompras += (c.custo * c.quantidade) + c.frete);
+  compras.forEach(c => totalCompras += (c.custo * c.quantidade) + (c.frete || 0));
   vendas.forEach(v => totalVendas += v.preco_venda * v.quantidade);
+
+  const lucro = totalVendas - totalCompras;
 
   investido.innerText = totalCompras.toFixed(2);
   receita.innerText = totalVendas.toFixed(2);
-  lucro.innerText = (totalVendas - totalCompras).toFixed(2);
+  lucro.innerText = lucro.toFixed(2);
+  lucroSocio.innerText = (lucro / 2).toFixed(2);
+
+  // TABELA ESTOQUE
+  const tabela = document.getElementById("tabelaEstoque");
+  tabela.innerHTML = "";
+
+  produtos.forEach(p => {
+    const valor = p.quantidade * p.custo;
+
+    tabela.innerHTML += `
+      <tr>
+        <td>${p.nome}</td>
+        <td>${p.quantidade}</td>
+        <td>R$ ${p.custo}</td>
+        <td>R$ ${valor.toFixed(2)}</td>
+        <td><span class="status">OK</span></td>
+      </tr>
+    `;
+  });
+}
 }
 </script>
 
