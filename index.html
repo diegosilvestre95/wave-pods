@@ -600,25 +600,62 @@ select option { background: #13131f; color: var(--text); }
 
   @media (max-width: 600px) {
 
-  /* WRAPPER COM RESPIRO LATERAL */
+  /* NAV */
+  nav {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 10px;
+  }
+
+  nav button {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  /* WRAPPER */
   .wrapper {
-    padding: 0 10px;
+    width: 100%;
+    padding: 0 12px;
   }
 
-  /* CONTAINER MAIS AJUSTADO */
+  /* CONTAINER */
   .container {
-    padding: 18px 10px;
+    padding: 16px 0;
   }
 
-  /* DASHBOARD */
+  /* DASHBOARD GRID */
   .stats-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
+    width: 100%;
   }
 
   /* CARDS */
   .stat-card {
-    border-radius: 16px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* CORREÇÃO PRINCIPAL 👇 */
+  .dash-bottom {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* CARD INTERNO */
+  .card {
+    padding: 16px;
+  }
+
+  /* TABELA */
+  table {
+    display: block;
+    overflow-x: auto;
   }
 
 }
