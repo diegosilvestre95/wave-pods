@@ -67,7 +67,7 @@ input, select {
   <button onclick="logout()">Sair</button>
 </header>
 
-<div id="login" class="container">
+<div id="telaLogin" class="container">
   <div class="card">
     <h2>Login</h2>
     <input id="user" placeholder="Usuário">
@@ -139,7 +139,7 @@ function logout() {
 }
 
 function iniciar() {
-  login.style.display = "none";
+  document.getElementById("telaLogin").style.display = "none";
   app.classList.remove("hidden");
   carregarProdutos();
   dashboard();
