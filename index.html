@@ -862,6 +862,12 @@ async function registrarCompra() {
   const itens = document.querySelectorAll("#listaProdutos .product-row");
   const frete = parseFloat(freteCompra.value) || 0;
 
+  // 👉 SOMA TOTAL DE UNIDADES (IMPORTANTÍSSIMO)
+  let totalQtd = 0;
+  itens.forEach(item => {
+    totalQtd += parseInt(item.querySelector(".qtd").value) || 0;
+  });
+
   for (let item of itens) {
     const nome  = item.querySelector(".nome").value;
     const q     = parseInt(item.querySelector(".qtd").value);
@@ -869,7 +875,10 @@ async function registrarCompra() {
 
     if (!nome || !q || !custo) continue;
 
-    custo += frete;
+    // 👉 FRETE DIVIDIDO POR UNIDADE
+    const freteUnitario = totalQtd > 0 ? frete / totalQtd : 0;
+
+    custo += freteUnitario;
 
     await supabaseClient.from("produtos").insert({
       nome,
