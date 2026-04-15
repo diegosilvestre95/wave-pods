@@ -4,182 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WavePod ERP</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         :root { --bg: #0b0e14; --card: #161b22; --border: #30363d; --blue: #00d4ff; --pink: #d946ef; --text: #ffffff; --sub: #8b949e; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--bg); color: var(--text); font-family: 'SF Pro Display', sans-serif; margin: 0; padding: env(safe-area-inset-top) 15px 100px; }
         .wp-logo { font-size: 24px; font-weight: 800; text-align: center; padding: 25px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
-        
-        /* Dashboard */
-        .main-balance { background: linear-gradient(145deg, #1e252e, #161b22); border: 1px solid var(--border); border-radius: 28px; padding: 30px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 25px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .main-balance { background: linear-gradient(145deg, #1e252e, #161b22); border: 1px solid var(--border); border-radius: 28px; padding: 30px; text-align: center; margin-bottom: 20px; }
         .val-hero { font-size: 38px; font-weight: 800; margin: 10px 0; color: var(--blue); }
-        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-bottom: 15px; }
-        .label-sub { color: var(--sub); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-        
-        /* Inputs Estilo iOS Dark */
-        input, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 16px; border-radius: 16px; width: 100%; margin: 8px 0 16px; font-size: 16px; transition: 0.2s; }
-        input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.1); }
+        input { background: #0d1117; border: 1px solid var(--border); color: white; padding: 16px; border-radius: 16px; width: 100%; margin: 8px 0 16px; font-size: 16px; }
         .btn-action { background: linear-gradient(90deg, var(--blue), var(--pink)); border: none; padding: 18px; border-radius: 18px; color: white; font-weight: 800; width: 100%; font-size: 16px; cursor: pointer; }
-        
-        /* Tab Bar Fixa */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 10px env(safe-area-inset-bottom); z-index: 100; }
-        .tab-item { background: none; border: none; color: var(--sub); font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; font-weight: 500; }
+        .tab-item { background: none; border: none; color: var(--sub); font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .tab-item.active { color: var(--blue); }
-        .tab-icon { font-size: 22px; }
-
-        /* History */
-        .history-card { border-left: 4px solid var(--blue); padding: 15px; background: #1c2128; border-radius: 0 16px 16px 0; margin-bottom: 10px; }
-        .meta { font-size: 10px; color: var(--sub); margin-top: 8px; display: flex; justify-content: space-between; }
+        .label-sub { color: var(--sub); font-size: 11px; text-transform: uppercase; font-weight: 700; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="display:flex; justify-content:center; align-items:center; height:100vh; color:#8b949e;">
+            Carregando WavePod...
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const client = supabase.createClient('https://xxzvdwgcgcxycihswnyq.supabase.co', 'sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc');
+
+        // Inicialização do Supabase
+        const sbUrl = 'https://xxzvdwgcgcxycihswnyq.supabase.co';
+        const sbKey = 'sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc';
+        const supabase = window.supabase.createClient(sbUrl, sbKey);
 
         function App() {
             const [isLogged, setIsLogged] = useState(false);
             const [tab, setTab] = useState('home');
-            const [stock, setStock] = useState([
-                { id: 1, nome: 'IGNITE V80 8K', qtd: 5, custo: 57.00 },
-                { id: 2, nome: 'ELF BAR 10K', qtd: 5, custo: 57.00 }
-            ]);
+            const [user, setUser] = useState('');
+            const [pass, setPass] = useState('');
 
-            // Lógica de Memória do Login
+            // Verifica se já estava logado antes
             useEffect(() => {
-                const savedSession = localStorage.getItem('wavepod_session');
-                if (savedSession === 'active') setIsLogged(true);
+                const session = localStorage.getItem('wave_session');
+                if (session === 'active') setIsLogged(true);
             }, []);
 
-            const handleLogin = (u, p) => {
-                if (u === 'admin' && p === 'Wave@2026') {
-                    localStorage.setItem('wavepod_session', 'active');
+            const handleLogin = () => {
+                // Usuário e senha conforme solicitado
+                if (user.toLowerCase() === 'admin' && pass === 'Wave@2026') {
+                    localStorage.setItem('wave_session', 'active');
                     setIsLogged(true);
                 } else {
-                    alert('Credenciais incorretas.');
+                    alert('Credenciais incorretas!');
                 }
             };
 
             const handleLogout = () => {
-                localStorage.removeItem('wavepod_session');
+                localStorage.removeItem('wave_session');
                 setIsLogged(false);
             };
 
-            if (!isLogged) return (
-                <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                    <div className="wp-logo">WAVEPOD</div>
-                    <div className="card" style={{ marginTop: 20 }}>
-                        <h3 style={{ marginBottom: 20 }}>Login Administrativo</h3>
-                        <input type="text" id="user" placeholder="Usuário" autoCapitalize="none" />
-                        <input type="password" id="pass" placeholder="Senha" />
-                        <button className="btn-action" onClick={() => handleLogin(
-                            document.getElementById('user').value,
-                            document.getElementById('pass').value
-                        )}>ENTRAR</button>
+            if (!isLogged) {
+                return (
+                    <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+                        <div className="wp-logo">WAVEPOD</div>
+                        <div className="card">
+                            <h3 style={{ marginBottom: 20 }}>Acesso Restrito</h3>
+                            <input 
+                                placeholder="Usuário" 
+                                value={user}
+                                onChange={(e) => setUser(e.target.value)}
+                                autoCapitalize="none"
+                            />
+                            <input 
+                                type="password" 
+                                placeholder="Senha" 
+                                value={pass}
+                                onChange={(e) => setPass(e.target.value)}
+                            />
+                            <button className="btn-action" onClick={handleLogin}>ENTRAR</button>
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            }
 
             return (
                 <div>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                    <div style={{ position: 'relative' }}>
                         <div className="wp-logo">WAVEPOD</div>
-                        <button onClick={handleLogout} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', color: 'red', fontSize: '12px', fontWeight: 'bold' }}>SAIR</button>
+                        <button onClick={handleLogout} style={{ position: 'absolute', right: 0, top: 25, background: 'none', border: 'none', color: 'red', fontWeight: 'bold' }}>Sair</button>
                     </div>
 
                     {tab === 'home' && (
-                        <div>
-                            <div className="main-balance">
-                                <div className="label-sub">Saldo Disponível (Lucro Líquido)</div>
-                                <div className="val-hero">R$ 0,00</div>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: 15 }}>
-                                    <div><small className="label-sub">Diego (50%)</small><br/>R$ 0,00</div>
-                                    <div style={{ width: '1px', background: var(--border) }}></div>
-                                    <div><small className="label-sub">Lucas (50%)</small><br/>R$ 0,00</div>
-                                </div>
-                            </div>
-                            <div className="grid-stats">
-                                <div className="card">
-                                    <div className="label-sub">Investimento</div>
-                                    <div style={{ fontSize: '20px', fontWeight: '800', marginTop: 5 }}>R$ 570,00</div>
-                                </div>
-                                <div className="card">
-                                    <div className="label-sub">Vendido</div>
-                                    <div style={{ fontSize: '20px', fontWeight: '800', marginTop: 5, color: var(--pink) }}>R$ 0,00</div>
-                                </div>
+                        <div className="main-balance">
+                            <div className="label-sub">Saldo Disponível (Lucro)</div>
+                            <div className="val-hero">R$ 0,00</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: 15 }}>
+                                <div><small className="label-sub">Diego (50%)</small><br/>R$ 0,00</div>
+                                <div><small className="label-sub">Lucas (50%)</small><br/>R$ 0,00</div>
                             </div>
                         </div>
                     )}
 
                     {tab === 'vendas' && (
                         <div className="card">
-                            <h2 style={{ margin: '0 0 20px' }}>Nova Venda</h2>
-                            <label className="label-sub">Selecione o Pod</label>
-                            <select>
-                                <option value="">--- Produtos em Estoque ---</option>
-                                {stock.map(s => <option key={s.id}>{s.nome} ({s.qtd} un)</option>)}
-                            </select>
-                            
-                            <label className="label-sub">Quantidade</label>
-                            <input type="number" placeholder="Ex: 1" />
-                            
-                            <label className="label-sub">Preço de Venda</label>
-                            <input type="number" placeholder="R$ 0,00" />
-                            
-                            <div style={{ background: '#0b0e14', padding: 18, borderRadius: 16, border: '1px solid var(--border)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                    <span className="label-sub">Custo Unitário</span>
-                                    <span>R$ 57,00</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span className="label-sub">Lucro da Venda</span>
-                                    <span style={{ color: var(--blue), fontWeight: '800' }}>R$ 0,00</span>
-                                </div>
-                            </div>
-                            <button className="btn-action" style={{ marginTop: 20 }}>REGISTRAR AGORA</button>
-                        </div>
-                    )}
-
-                    {tab === 'compras' && (
-                        <div className="card">
-                            <h2 style={{ margin: '0 0 20px' }}>Entrada de Estoque</h2>
-                            <label className="label-sub">Fornecedor</label>
-                            <input placeholder="Ex: Importador China" />
-                            <label className="label-sub">Valor Total Pago</label>
-                            <input type="number" placeholder="R$ 0,00" />
-                            <label className="label-sub">Descrição dos Itens</label>
-                            <textarea style={{ width: '100%', background: '#0d1117', border: '1px solid var(--border)', borderRadius: 16, color: 'white', padding: 15, minHeight: 100, fontSize: '15px' }} placeholder="Ex: 5x V80 Ignite, 5x Elf Bar"></textarea>
-                            <button className="btn-action" style={{ marginTop: 20 }}>SALVAR COMPRA</button>
-                        </div>
-                    )}
-
-                    {tab === 'history' && (
-                        <div>
-                            <h2 style={{ margin: '0 0 20px' }}>Histórico Imutável</h2>
-                            <div className="history-card">
-                                <div style={{ fontWeight: '800' }}>VENDA: IGNITE V80 8K</div>
-                                <div style={{ color: var(--blue), fontSize: '18px', fontWeight: '800', marginTop: 4 }}>+ R$ 120,00</div>
-                                <div className="meta">
-                                    <span>Hoje às 13:40</span>
-                                    <span>📍 iPhone (Safari)</span>
-                                </div>
-                            </div>
+                            <h2>Registrar Venda</h2>
+                            <p style={{color: 'var(--sub)'}}>Selecione o pod do estoque e defina o valor.</p>
+                            <button className="btn-action" onClick={() => alert('Em breve conectado ao DB')}>Confirmar</button>
                         </div>
                     )}
 
                     <div className="tab-bar">
-                        <button className={`tab-item ${tab==='home'?'active':''}`} onClick={()=>setTab('home')}><span className="tab-icon">📊</span>Início</button>
-                        <button className={`tab-item ${tab==='vendas'?'active':''}`} onClick={()=>setTab('vendas')}><span className="tab-icon">💰</span>Vender</button>
-                        <button className={`tab-item ${tab==='compras'?'active':''}`} onClick={()=>setTab('compras')}><span className="tab-icon">📦</span>Comprar</button>
-                        <button className={`tab-item ${tab==='history'?'active':''}`} onClick={()=>setTab('history')}><span className="tab-icon">🕒</span>Histórico</button>
+                        <button className={`tab-item ${tab==='home'?'active':''}`} onClick={()=>setTab('home')}><span>📊</span>Dashboard</button>
+                        <button className={`tab-item ${tab==='vendas'?'active':''}`} onClick={()=>setTab('vendas')}><span>💰</span>Vendas</button>
+                        <button className={`tab-item ${tab==='compras'?'active':''}`} onClick={()=>setTab('compras')}><span>📦</span>Compras</button>
+                        <button className={`tab-item ${tab==='history'?'active':''}`} onClick={()=>setTab('history')}><span>🕒</span>Histórico</button>
                     </div>
                 </div>
             );
