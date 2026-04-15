@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WavePod - Interno</title>
+    <title>WavePod - Business Intelligence</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,14 +12,26 @@
     <style>
         :root { --bg: #0b0e14; --card: #161b22; --border: #30363d; --blue: #00d4ff; --pink: #d946ef; --text: #ffffff; --sub: #8b949e; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 15px; }
-        .wp-logo { font-size: 28px; font-weight: 800; text-align: center; padding: 25px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 20px; }
-        .nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--sub); padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; border: none; }
-        .nav-btn.active { background: var(--blue); color: #000; font-weight: 600; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 15px; }
-        input, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
-        .btn-main { background: linear-gradient(90deg, var(--blue), var(--pink)); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: 800; width: 100%; cursor: pointer; }
-        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .wp-logo { font-size: 28px; font-weight: 800; text-align: center; padding: 20px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Navegação Estilo Premium */
+        .nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .nav::-webkit-scrollbar { display: none; }
+        .nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--sub); padding: 10px 20px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 600; transition: 0.3s; }
+        .nav-btn.active { background: var(--blue); color: #000; border-color: var(--blue); box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+
+        /* Cards Estilo Imagem 1 */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+        .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .val-big { font-size: 24px; font-weight: 800; margin: 5px 0; }
+        .label-small { color: var(--sub); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 14px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--blue); }
+        .btn-main { background: linear-gradient(90deg, var(--blue), var(--pink)); border: none; padding: 16px; border-radius: 14px; color: white; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; }
+        
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+        .badge-blue { background: rgba(0, 212, 255, 0.1); color: var(--blue); }
     </style>
 </head>
 <body>
@@ -27,129 +39,117 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-
-        // Configuração do Supabase
         const client = supabase.createClient('https://xxzvdwgcgcxycihswnyq.supabase.co', 'sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc');
+
+        const fmt = (n) => `R$ ${Number(n || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
         function App() {
             const [isLogged, setIsLogged] = useState(false);
             const [tab, setTab] = useState('dashboard');
-            const [userInput, setUserInput] = useState('');
-            const [passInput, setPassInput] = useState('');
-            const [stock, setStock] = useState([]);
-            const [compraItems, setCompraItems] = useState([{ id: 1, name: '', cost: '', qty: '' }]);
+            const [stock, setStock] = useState([
+                { id: 1, produto: 'IGNITE V80 8K', quantidade: 5, custo_medio: 57.00 },
+                { id: 2, produto: 'ELF BAR 10K', quantidade: 5, custo_medio: 57.00 }
+            ]);
 
-            const tryLogin = () => {
-                console.log("Tentativa de login com:", userInput);
-                if (userInput === 'admin' && passInput === 'Wave@Lucas10Diego') {
-                    setIsLogged(true);
-                } else {
-                    alert('Usuário ou Senha incorretos.');
-                }
-            };
-
-            useEffect(() => {
-                if (isLogged) {
-                    const fetchStock = async () => {
-                        const { data } = await client.from('estoque').select('*');
-                        if (data) setStock(data);
-                    };
-                    fetchStock();
-                }
-            }, [isLogged]);
-
-            // TELA DE LOGIN
-            if (!isLogged) {
-                return (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '90vh' }}>
-                        <div className="card" style={{ width: '100%', maxWidth: '320px', textAlign: 'center' }}>
-                            <div className="wp-logo">WAVEPOD</div>
-                            <input 
-                                type="text" 
-                                placeholder="Usuário" 
-                                value={userInput} 
-                                onChange={(e) => setUserInput(e.target.value)} 
-                            />
-                            <input 
-                                type="password" 
-                                placeholder="Senha" 
-                                value={passInput} 
-                                onChange={(e) => setPassInput(e.target.value)} 
-                            />
-                            <button className="btn-main" onClick={tryLogin}>ENTRAR NO SISTEMA</button>
-                        </div>
+            if (!isLogged) return (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '90vh' }}>
+                    <div className="card" style={{ width: '320px', textAlign: 'center' }}>
+                        <div className="wp-logo">WAVEPOD</div>
+                        <input type="text" id="user" placeholder="Usuário" />
+                        <input type="password" id="pass" placeholder="Senha" />
+                        <button className="btn-main" onClick={() => {
+                            if(document.getElementById('user').value === 'admin' && document.getElementById('pass').value === 'Wave@Lucas10Diego') setIsLogged(true);
+                        }}>Entrar</button>
                     </div>
-                );
-            }
+                </div>
+            );
 
-            // TELA PRINCIPAL (DASHBOARD)
             return (
                 <div style={{ maxWidth: '500px', margin: '0 auto' }}>
                     <div className="wp-logo">WAVEPOD</div>
                     
                     <div className="nav">
-                        <button className={`nav-btn ${tab === 'dashboard' ? 'active' : ''}`} onClick={() => setTab('dashboard')}>Dashboard</button>
-                        <button className={`nav-btn ${tab === 'compra' ? 'active' : ''}`} onClick={() => setTab('compra')}>Compra</button>
-                        <button className={`nav-btn ${tab === 'venda' ? 'active' : ''}`} onClick={() => setTab('venda')}>Venda</button>
-                        <button className={`nav-btn ${tab === 'estoque' ? 'active' : ''}`} onClick={() => setTab('estoque')}>Estoque</button>
+                        {['Dashboard', 'Venda', 'Compra', 'Estoque'].map(t => (
+                            <button key={t} className={`nav-btn ${tab === t.toLowerCase() ? 'active' : ''}`} onClick={() => setTab(t.toLowerCase())}>{t}</button>
+                        ))}
                     </div>
 
                     {tab === 'dashboard' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                            <div className="card"><small style={{color:'var(--sub)'}}>INVESTIDO</small><h3>R$ 570,00</h3></div>
-                            <div className="card"><small style={{color:'var(--sub)'}}>LUCRO</small><h3 style={{color:'var(--blue)'}}>R$ 0,00</h3></div>
-                        </div>
-                    )}
-
-                    {tab === 'compra' && (
-                        <div className="card">
-                            <h3 style={{marginTop:0}}>Nova Compra</h3>
-                            {compraItems.map((item, index) => (
-                                <div key={item.id} className="item-row">
-                                    <input placeholder="Produto" value={item.name} onChange={(e) => {
-                                        const newItems = [...compraItems];
-                                        newItems[index].name = e.target.value;
-                                        setCompraItems(newItems);
-                                    }} />
-                                    <input type="number" placeholder="Custo" />
-                                    <input type="number" placeholder="Qtd" />
-                                    <button onClick={() => setCompraItems(compraItems.filter(i => i.id !== item.id))} style={{background:'none', border:'none', color:'red'}}>✕</button>
+                        <div>
+                            <div className="card" style={{textAlign: 'center', border: '1px solid var(--blue)'}}>
+                                <div className="label-small">Saldo p/ Sócios (50/50)</div>
+                                <div className="val-big" style={{color: var(--blue)}}>R$ 0,00</div>
+                                <div style={{display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px'}}>
+                                    <div><small style={{color:var(--sub)}}>Diego</small><br/>R$ 0,00</div>
+                                    <div><small style={{color:var(--sub)}}>Lucas</small><br/>R$ 0,00</div>
                                 </div>
-                            ))}
-                            <button 
-                                onClick={() => setCompraItems([...compraItems, { id: Date.now(), name: '', cost: '', qty: '' }])}
-                                style={{ background: 'none', border: '1px dashed var(--sub)', color: 'var(--sub)', width: '100%', padding: 10, borderRadius: 8, marginBottom: 15, cursor: 'pointer' }}
-                            >
-                                + Adicionar mais de 1 produto
-                            </button>
-                            <button className="btn-main">Salvar no Supabase</button>
+                            </div>
+
+                            <div className="metric-grid">
+                                <div className="card">
+                                    <div className="label-small">Investimento</div>
+                                    <div className="val-big">{fmt(570)}</div>
+                                </div>
+                                <div className="card">
+                                    <div className="label-small">Lucro Bruto</div>
+                                    <div className="val-big" style={{color: var(--pink)}}>R$ 0,00</div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
                     {tab === 'venda' && (
                         <div className="card">
                             <h3 style={{marginTop:0}}>Registrar Venda</h3>
-                            <select>
-                                <option>Selecionar produto...</option>
-                                {stock.map(s => <option key={s.id}>{s.produto} ({s.quantidade} un)</option>)}
+                            <div className="label-small">Produto</div>
+                            <select id="venda-prod">
+                                <option value="">Selecione o item...</option>
+                                {stock.map(s => <option key={s.id} value={s.id}>{s.produto} ({s.quantidade} un)</option>)}
                             </select>
-                            <input type="number" placeholder="Quantidade" />
-                            <input type="number" placeholder="Preço de Venda" />
-                            <button className="btn-main">Confirmar Venda</button>
+                            <div className="label-small">Quantidade</div>
+                            <input type="number" placeholder="0" />
+                            <div className="label-small">Preço de Venda (R$)</div>
+                            <input type="number" placeholder="R$ 0,00" />
+                            
+                            <div style={{background: '#0d1117', padding: '15px', borderRadius: '12px', marginBottom: '15px'}}>
+                                <div style={{display:'flex', justifyContent:'space-between'}}>
+                                    <span className="label-small">Lucro Estimado</span>
+                                    <span style={{color: var(--blue), fontWeight: 'bold'}}>+ R$ 0,00</span>
+                                </div>
+                            </div>
+                            <button className="btn-main">Finalizar Venda</button>
+                        </div>
+                    )}
+
+                    {tab === 'compra' && (
+                        <div className="card">
+                            <h3 style={{marginTop:0}}>Entrada de Estoque</h3>
+                            <input placeholder="Nome do Fornecedor / Lote" />
+                            <div style={{border: '1px dashed var(--border)', padding: '15px', borderRadius: '12px', marginBottom: '15px'}}>
+                                <input placeholder="Nome do Pod" />
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <input type="number" placeholder="Qtd" />
+                                    <input type="number" placeholder="Custo Unit." />
+                                </div>
+                            </div>
+                            <button className="btn-main">Adicionar ao Estoque</button>
                         </div>
                     )}
 
                     {tab === 'estoque' && (
                         <div className="card">
-                            <h3 style={{marginTop:0}}>Estoque</h3>
-                            <table style={{width: '100%', textAlign: 'left', fontSize: '14px'}}>
-                                <thead><tr style={{color: 'var(--sub)'}}><th>Produto</th><th>Qtd</th><th>Custo</th></tr></thead>
-                                <tbody>
-                                    {stock.length > 0 ? stock.map(s => (
-                                        <tr key={s.id}><td>{s.produto}</td><td>{s.quantidade}</td><td>R$ {s.custo_medio}</td></tr>
-                                    )) : <tr><td colSpan="3" style={{textAlign:'center', padding: '20px', color: 'var(--sub)'}}>Buscando dados no Supabase...</td></tr>}
-                                </tbody>
-                            </table>
+                            <h3 style={{marginTop:0, marginBottom: '20px'}}>Inventário</h3>
+                            {stock.map(s => (
+                                <div key={s.id} style={{display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:'1px solid #252a33'}}>
+                                    <div>
+                                        <div style={{fontWeight:'bold'}}>{s.produto}</div>
+                                        <div className="label-small">Custo Médio: {fmt(s.custo_medio)}</div>
+                                    </div>
+                                    <div style={{textAlign:'right'}}>
+                                        <div className="badge badge-blue">{s.quantidade} UN</div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
