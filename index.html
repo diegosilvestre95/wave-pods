@@ -12,47 +12,47 @@ body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: #f3f4f6;
+  text-align: center;
 }
 
 /* HEADER */
 header {
-  background: #000;
-  color: #fff;
-  padding: 15px 25px;
-  display: flex;
-  justify-content: space-between;
+  background: black;
+  padding: 20px;
 }
 
-/* LOGO */
+/* LOGO CENTRAL */
 .logo {
-  color: #2f80ed;
+  font-size: 26px;
   font-weight: bold;
+  background: linear-gradient(90deg,#2f80ed,#bb6bd9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* NAV */
+/* NAV CENTRAL */
 nav {
-  background: #fff;
-  padding: 12px 25px;
   display: flex;
-  gap: 20px;
+  justify-content: center;
+  gap: 30px;
+  background: #fff;
+  padding: 12px;
   border-bottom: 1px solid #ddd;
 }
 
-/* BOTÕES NAV */
 nav button {
   background: none;
   border: none;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: bold;
 }
 
-/* CONTAINER CENTRAL */
+/* CONTAINER */
 .wrapper {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: auto;
 }
 
-/* CONTEÚDO */
 .container {
   padding: 20px;
 }
@@ -64,86 +64,71 @@ nav button {
   gap: 15px;
 }
 
-/* CARDS */
+/* CARD */
 .card {
   background: #fff;
   padding: 18px;
   border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  text-align: left;
 }
 
-/* TEXTO */
-.stat-title {
-  font-size: 13px;
-  color: #888;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: bold;
-}
-
+/* TEXT */
+.stat-title { font-size: 13px; color: #888; }
+.stat-value { font-size: 20px; font-weight: bold; }
 .green { color: #27ae60; }
 
-/* TABELA */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
+/* TABLE */
+table { width:100%; border-collapse: collapse; }
+th, td { padding:10px; border-bottom:1px solid #eee; }
 
 .status {
-  background: #e6f9ed;
-  color: #27ae60;
-  padding: 4px 10px;
-  border-radius: 10px;
+  background:#e6f9ed;
+  color:#27ae60;
+  padding:4px 10px;
+  border-radius:10px;
 }
 
 /* INPUT */
 input, select {
-  width: 100%;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
 
-/* BOTÃO */
+/* BUTTON */
 button.main {
-  background: #000;
-  color: #fff;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
+  background:black;
+  color:white;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  width:100%;
 }
 
 /* LOGIN */
 .login-box {
-  max-width: 400px;
-  margin: 100px auto;
+  max-width:400px;
+  margin:100px auto;
 }
 
-/* ESCONDER */
-.hidden { display: none; }
+.hidden { display:none; }
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="logo">Wave Pod</div>
-  <button onclick="logout()">Sair</button>
+  <div class="logo">WAVEPOD</div>
 </header>
 
 <nav>
   <button onclick="trocarTela('dashboard')">Dashboard</button>
   <button onclick="trocarTela('vendas')">Vendas</button>
   <button onclick="trocarTela('compras')">Compras</button>
+  <button onclick="trocarTela('estoque')">Estoque</button>
+  <button onclick="trocarTela('historico')">Histórico</button>
 </nav>
 
 <div class="wrapper">
@@ -158,53 +143,15 @@ button.main {
   </div>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="container">
-
-  <h2>Dashboard</h2>
-  <p style="color:#888">Visão geral</p>
-
   <div class="grid">
-    <div class="card">
-      <div class="stat-title">Total investido</div>
-      <div class="stat-value">R$ <span id="investido">0</span></div>
-    </div>
-
-    <div class="card">
-      <div class="stat-title">Receita total</div>
-      <div class="stat-value">R$ <span id="receita">0</span></div>
-    </div>
-
-    <div class="card">
-      <div class="stat-title">Lucro líquido</div>
-      <div class="stat-value green">R$ <span id="lucro">0</span></div>
-    </div>
-
-    <div class="card">
-      <div class="stat-title">Lucro por sócio</div>
-      <div class="stat-value green">R$ <span id="lucroSocio">0</span></div>
-    </div>
+    <div class="card"><div class="stat-title">Investido</div><div class="stat-value">R$ <span id="investido"></span></div></div>
+    <div class="card"><div class="stat-title">Receita</div><div class="stat-value">R$ <span id="receita"></span></div></div>
+    <div class="card"><div class="stat-title">Lucro</div><div class="stat-value green">R$ <span id="lucro"></span></div></div>
   </div>
-
-  <div class="card">
-    <h3>Estoque resumido</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>QTD</th>
-          <th>Custo</th>
-          <th>Valor</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaEstoque"></tbody>
-    </table>
-  </div>
-
 </div>
 
 <!-- VENDAS -->
@@ -213,8 +160,8 @@ button.main {
     <h3>Nova Venda</h3>
     <select id="produto"></select>
     <input id="qtd" type="number" placeholder="Quantidade">
-    <input id="preco" type="number" placeholder="Preço venda">
-    <button class="main" onclick="registrarVenda()">Registrar venda</button>
+    <input id="preco" type="number" placeholder="Preço">
+    <button class="main" onclick="registrarVenda()">Registrar</button>
   </div>
 </div>
 
@@ -223,10 +170,36 @@ button.main {
   <div class="card">
     <h3>Nova Compra</h3>
     <input id="nomeCompra" placeholder="Produto">
-    <input id="qtdCompra" type="number" placeholder="Quantidade">
-    <input id="custoCompra" type="number" placeholder="Custo">
+    <input id="qtdCompra" type="number">
+    <input id="custoCompra" type="number">
     <input id="freteCompra" type="number" placeholder="Frete">
-    <button class="main" onclick="registrarCompra()">Registrar compra</button>
+    <button class="main" onclick="registrarCompra()">Registrar</button>
+  </div>
+</div>
+
+<!-- ESTOQUE -->
+<div id="estoque" class="container hidden">
+  <div class="card">
+    <h3>Estoque</h3>
+    <table>
+      <thead>
+        <tr><th>Produto</th><th>Qtd</th><th>Custo</th></tr>
+      </thead>
+      <tbody id="tabelaEstoque"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- HISTÓRICO -->
+<div id="historico" class="container hidden">
+  <div class="card">
+    <h3>Histórico</h3>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr>
+      </thead>
+      <tbody id="tabelaHistorico"></tbody>
+    </table>
   </div>
 </div>
 
@@ -240,131 +213,120 @@ const supabaseClient = supabase.createClient(
 );
 
 // LOGIN
-function fazerLogin() {
-  const u = document.getElementById("userInput").value;
-  const p = document.getElementById("passInput").value;
-
-  if (u === "Admin" && p === "Wave@2026") {
-    localStorage.setItem("logado", "true");
-    iniciarSistema();
-  } else {
-    alert("Login inválido");
+function fazerLogin(){
+  if(userInput.value==="Admin" && passInput.value==="Wave@2026"){
+    localStorage.setItem("logado","true");
+    iniciar();
   }
 }
 
-function logout() {
-  localStorage.removeItem("logado");
-  location.reload();
-}
+if(localStorage.getItem("logado")) iniciar();
 
-function iniciarSistema() {
-  document.getElementById("loginTela").style.display = "none";
-  document.getElementById("app").classList.remove("hidden");
+function iniciar(){
+  loginTela.style.display="none";
+  app.classList.remove("hidden");
   carregarProdutos();
-  atualizarDashboard();
+  dashboard();
+  carregarHistorico();
 }
 
-// AUTO LOGIN
-if (localStorage.getItem("logado")) iniciarSistema();
-
-// TROCAR TELA
-function trocarTela(tela) {
-  ["dashboard","vendas","compras"].forEach(t =>
-    document.getElementById(t).classList.add("hidden")
-  );
-  document.getElementById(tela).classList.remove("hidden");
+// TROCA
+function trocarTela(t){
+  ["dashboard","vendas","compras","estoque","historico"]
+  .forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(t).classList.remove("hidden");
 }
 
 // PRODUTOS
-async function carregarProdutos() {
-  const { data } = await supabaseClient.from("produtos").select("*");
-  const select = document.getElementById("produto");
-  select.innerHTML = "";
-
-  data.forEach(p => {
-    select.innerHTML += `<option value="${p.id}">
-      ${p.nome} (${p.quantidade})
-    </option>`;
+async function carregarProdutos(){
+  const {data}=await supabaseClient.from("produtos").select("*");
+  produto.innerHTML="";
+  data.forEach(p=>{
+    produto.innerHTML+=`<option value="${p.id}">${p.nome} (${p.quantidade})</option>`;
   });
 }
 
 // VENDA
-async function registrarVenda() {
-  const id = produto.value;
-  const q = parseInt(qtd.value);
-  const precoVenda = parseFloat(preco.value);
+async function registrarVenda(){
+  const id=produto.value;
+  const q=parseInt(qtd.value);
+  const precoVenda=parseFloat(preco.value);
 
-  const { data: prod } = await supabaseClient
-    .from("produtos").select("*").eq("id", id).single();
+  const {data:prod}=await supabaseClient.from("produtos").select("*").eq("id",id).single();
 
-  await supabaseClient.from("vendas").insert({
-    produto_id: id,
-    quantidade: q,
-    preco_venda: precoVenda
+  await supabaseClient.from("vendas").insert({produto_id:id,quantidade:q,preco_venda:precoVenda});
+
+  await supabaseClient.from("produtos")
+    .update({quantidade:prod.quantidade-q})
+    .eq("id",id);
+
+  await supabaseClient.from("historico").insert({
+    tipo:"Venda",
+    descricao:prod.nome+" ("+q+")",
+    valor:precoVenda*q
   });
 
-  await supabaseClient
-    .from("produtos")
-    .update({ quantidade: prod.quantidade - q })
-    .eq("id", id);
-
-  alert("Venda registrada");
-  atualizarDashboard();
+  dashboard();
+  carregarHistorico();
 }
 
 // COMPRA
-async function registrarCompra() {
-  const nome = nomeCompra.value;
-  const q = parseInt(qtdCompra.value);
-  const custo = parseFloat(custoCompra.value);
-  const frete = parseFloat(freteCompra.value || 0);
+async function registrarCompra(){
+  const nome=nomeCompra.value;
+  const q=parseInt(qtdCompra.value);
+  const custo=parseFloat(custoCompra.value);
+  const frete=parseFloat(freteCompra.value||0);
 
-  await supabaseClient.from("compras").insert({
-    nome, quantidade: q, custo, frete
-  });
+  await supabaseClient.from("compras").insert({nome,quantidade:q,custo,frete});
 
   await supabaseClient.from("produtos").insert({
-    nome, quantidade: q, custo: custo + (frete/q)
+    nome,quantidade:q,custo:custo+(frete/q)
   });
 
-  alert("Compra registrada");
-  atualizarDashboard();
+  await supabaseClient.from("historico").insert({
+    tipo:"Compra",
+    descricao:nome+" ("+q+")",
+    valor:(custo*q)+frete
+  });
+
+  dashboard();
+  carregarHistorico();
 }
 
-// DASHBOARD
-async function atualizarDashboard() {
-  const { data: compras } = await supabaseClient.from("compras").select("*");
-  const { data: vendas } = await supabaseClient.from("vendas").select("*");
-  const { data: produtos } = await supabaseClient.from("produtos").select("*");
+// DASH
+async function dashboard(){
+  const {data:compras}=await supabaseClient.from("compras").select("*");
+  const {data:vendas}=await supabaseClient.from("vendas").select("*");
+  const {data:produtos}=await supabaseClient.from("produtos").select("*");
 
-  let totalCompras = 0;
-  let totalVendas = 0;
+  let totalC=0,totalV=0;
 
-  compras.forEach(c => totalCompras += (c.custo * c.quantidade) + (c.frete || 0));
-  vendas.forEach(v => totalVendas += v.preco_venda * v.quantidade);
+  compras.forEach(c=>totalC+=(c.custo*c.quantidade)+(c.frete||0));
+  vendas.forEach(v=>totalV+=v.preco_venda*v.quantidade);
 
-  const lucro = totalVendas - totalCompras;
+  investido.innerText=totalC.toFixed(2);
+  receita.innerText=totalV.toFixed(2);
+  lucro.innerText=(totalV-totalC).toFixed(2);
 
-  document.getElementById("investido").innerText = totalCompras.toFixed(2);
-  document.getElementById("receita").innerText = totalVendas.toFixed(2);
-  document.getElementById("lucro").innerText = lucro.toFixed(2);
-  document.getElementById("lucroSocio").innerText = (lucro/2).toFixed(2);
+  tabelaEstoque.innerHTML="";
+  produtos.forEach(p=>{
+    tabelaEstoque.innerHTML+=`<tr><td>${p.nome}</td><td>${p.quantidade}</td><td>${p.custo}</td></tr>`;
+  });
+}
 
-  const tabela = document.getElementById("tabelaEstoque");
-  tabela.innerHTML = "";
+// HISTÓRICO
+async function carregarHistorico(){
+  const {data}=await supabaseClient.from("historico").select("*").order("data",{ascending:false});
 
-  produtos.forEach(p => {
-    const valor = p.quantidade * p.custo;
-
-    tabela.innerHTML += `
+  tabelaHistorico.innerHTML="";
+  data.forEach(h=>{
+    tabelaHistorico.innerHTML+=`
       <tr>
-        <td>${p.nome}</td>
-        <td>${p.quantidade}</td>
-        <td>R$ ${p.custo}</td>
-        <td>R$ ${valor.toFixed(2)}</td>
-        <td><span class="status">OK</span></td>
-      </tr>
-    `;
+        <td>${new Date(h.data).toLocaleDateString()}</td>
+        <td>${h.tipo}</td>
+        <td>${h.descricao}</td>
+        <td>R$ ${h.valor}</td>
+      </tr>`;
   });
 }
 </script>
