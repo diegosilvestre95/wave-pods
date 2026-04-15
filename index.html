@@ -12,16 +12,15 @@ body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: #f3f4f6;
-  text-align: center;
 }
 
 /* HEADER */
 header {
   background: black;
   padding: 20px;
+  text-align: center;
 }
 
-/* LOGO CENTRAL */
 .logo {
   font-size: 26px;
   font-weight: bold;
@@ -30,7 +29,7 @@ header {
   -webkit-text-fill-color: transparent;
 }
 
-/* NAV CENTRAL */
+/* NAV */
 nav {
   display: flex;
   justify-content: center;
@@ -47,17 +46,18 @@ nav button {
   font-weight: bold;
 }
 
-/* CONTAINER */
+/* WRAPPER CENTRAL */
 .wrapper {
-  max-width: 1100px;
+  max-width: 1000px;
   margin: auto;
 }
 
+/* CONTAINER */
 .container {
   padding: 20px;
 }
 
-/* GRID */
+/* GRID DASH */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
@@ -69,7 +69,6 @@ nav button {
   background: #fff;
   padding: 18px;
   border-radius: 12px;
-  text-align: left;
 }
 
 /* TEXT */
@@ -78,42 +77,67 @@ nav button {
 .green { color: #27ae60; }
 
 /* TABLE */
-table { width:100%; border-collapse: collapse; }
-th, td { padding:10px; border-bottom:1px solid #eee; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
 
-.status {
-  background:#e6f9ed;
-  color:#27ae60;
-  padding:4px 10px;
-  border-radius:10px;
+/* FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 12px;
+  color: #666;
 }
 
 /* INPUT */
 input, select {
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:8px;
-  border:1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
 /* BUTTON */
 button.main {
-  background:black;
-  color:white;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  width:100%;
+  background: black;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.add-btn {
+  background: #2f80ed;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  margin: 10px 0;
+  cursor: pointer;
 }
 
 /* LOGIN */
 .login-box {
-  max-width:400px;
-  margin:100px auto;
+  max-width: 400px;
+  margin: 100px auto;
 }
 
-.hidden { display:none; }
+.hidden { display: none; }
 </style>
 </head>
 
@@ -148,9 +172,20 @@ button.main {
 <!-- DASHBOARD -->
 <div id="dashboard" class="container">
   <div class="grid">
-    <div class="card"><div class="stat-title">Investido</div><div class="stat-value">R$ <span id="investido"></span></div></div>
-    <div class="card"><div class="stat-title">Receita</div><div class="stat-value">R$ <span id="receita"></span></div></div>
-    <div class="card"><div class="stat-title">Lucro</div><div class="stat-value green">R$ <span id="lucro"></span></div></div>
+    <div class="card">
+      <div class="stat-title">Investido</div>
+      <div class="stat-value">R$ <span id="investido"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-title">Receita</div>
+      <div class="stat-value">R$ <span id="receita"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-title">Lucro</div>
+      <div class="stat-value green">R$ <span id="lucro"></span></div>
+    </div>
   </div>
 </div>
 
@@ -158,9 +193,22 @@ button.main {
 <div id="vendas" class="container hidden">
   <div class="card">
     <h3>Nova Venda</h3>
-    <select id="produto"></select>
-    <input id="qtd" type="number" placeholder="Quantidade">
-    <input id="preco" type="number" placeholder="Preço">
+
+    <div class="form-group">
+      <label>Produto</label>
+      <select id="produto"></select>
+    </div>
+
+    <div class="form-group">
+      <label>Quantidade</label>
+      <input id="qtd" type="number">
+    </div>
+
+    <div class="form-group">
+      <label>Preço (R$)</label>
+      <input id="preco" type="number">
+    </div>
+
     <button class="main" onclick="registrarVenda()">Registrar</button>
   </div>
 </div>
@@ -169,11 +217,21 @@ button.main {
 <div id="compras" class="container hidden">
   <div class="card">
     <h3>Nova Compra</h3>
-    <input id="nomeCompra" placeholder="Produto">
-    <input id="qtdCompra" type="number">
-    <input id="custoCompra" type="number">
-    <input id="freteCompra" type="number" placeholder="Frete">
-    <button class="main" onclick="registrarCompra()">Registrar</button>
+
+    <div id="listaProdutos"></div>
+
+    <button class="add-btn" onclick="adicionarProduto()">
+      + Adicionar produto
+    </button>
+
+    <div class="form-group">
+      <label>Frete total (R$)</label>
+      <input id="freteCompra" type="number">
+    </div>
+
+    <button class="main" onclick="registrarCompra()">
+      Registrar compra
+    </button>
   </div>
 </div>
 
@@ -183,7 +241,11 @@ button.main {
     <h3>Estoque</h3>
     <table>
       <thead>
-        <tr><th>Produto</th><th>Qtd</th><th>Custo</th></tr>
+        <tr>
+          <th>Produto</th>
+          <th>Qtd</th>
+          <th>Custo</th>
+        </tr>
       </thead>
       <tbody id="tabelaEstoque"></tbody>
     </table>
@@ -196,7 +258,12 @@ button.main {
     <h3>Histórico</h3>
     <table>
       <thead>
-        <tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr>
+        <tr>
+          <th>Data</th>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+        </tr>
       </thead>
       <tbody id="tabelaHistorico"></tbody>
     </table>
@@ -230,7 +297,7 @@ function iniciar(){
   carregarHistorico();
 }
 
-// TROCA
+// TROCAR TELA
 function trocarTela(t){
   ["dashboard","vendas","compras","estoque","historico"]
   .forEach(x=>document.getElementById(x).classList.add("hidden"));
@@ -246,6 +313,30 @@ async function carregarProdutos(){
   });
 }
 
+// ADICIONAR PRODUTO
+function adicionarProduto(){
+  const div=document.createElement("div");
+  div.classList.add("form-grid");
+
+  div.innerHTML=`
+    <div class="form-group">
+      <label>Produto</label>
+      <input class="nome">
+    </div>
+    <div class="form-group">
+      <label>Qtd</label>
+      <input type="number" class="qtd">
+    </div>
+    <div class="form-group">
+      <label>Custo</label>
+      <input type="number" class="custo">
+    </div>
+  `;
+
+  listaProdutos.appendChild(div);
+}
+adicionarProduto();
+
 // VENDA
 async function registrarVenda(){
   const id=produto.value;
@@ -254,7 +345,9 @@ async function registrarVenda(){
 
   const {data:prod}=await supabaseClient.from("produtos").select("*").eq("id",id).single();
 
-  await supabaseClient.from("vendas").insert({produto_id:id,quantidade:q,preco_venda:precoVenda});
+  await supabaseClient.from("vendas").insert({
+    produto_id:id,quantidade:q,preco_venda:precoVenda
+  });
 
   await supabaseClient.from("produtos")
     .update({quantidade:prod.quantidade-q})
@@ -272,28 +365,42 @@ async function registrarVenda(){
 
 // COMPRA
 async function registrarCompra(){
-  const nome=nomeCompra.value;
-  const q=parseInt(qtdCompra.value);
-  const custo=parseFloat(custoCompra.value);
+  const itens=document.querySelectorAll("#listaProdutos .form-grid");
   const frete=parseFloat(freteCompra.value||0);
 
-  await supabaseClient.from("compras").insert({nome,quantidade:q,custo,frete});
+  for(let item of itens){
+    const nome=item.querySelector(".nome").value;
+    const qtd=parseInt(item.querySelector(".qtd").value);
+    const custo=parseFloat(item.querySelector(".custo").value);
 
-  await supabaseClient.from("produtos").insert({
-    nome,quantidade:q,custo:custo+(frete/q)
-  });
+    await supabaseClient.from("compras").insert({
+      nome,quantidade:qtd,custo,frete:0
+    });
 
-  await supabaseClient.from("historico").insert({
-    tipo:"Compra",
-    descricao:nome+" ("+q+")",
-    valor:(custo*q)+frete
-  });
+    await supabaseClient.from("produtos").insert({
+      nome,quantidade:qtd,custo
+    });
 
-  dashboard();
-  carregarHistorico();
+    await supabaseClient.from("historico").insert({
+      tipo:"Compra",
+      descricao:`${nome} (${qtd})`,
+      valor:custo*qtd
+    });
+  }
+
+  if(frete>0){
+    await supabaseClient.from("historico").insert({
+      tipo:"Frete",
+      descricao:"Frete da compra",
+      valor:frete
+    });
+  }
+
+  alert("Compra registrada!");
+  location.reload();
 }
 
-// DASH
+// DASHBOARD
 async function dashboard(){
   const {data:compras}=await supabaseClient.from("compras").select("*");
   const {data:vendas}=await supabaseClient.from("vendas").select("*");
@@ -310,13 +417,21 @@ async function dashboard(){
 
   tabelaEstoque.innerHTML="";
   produtos.forEach(p=>{
-    tabelaEstoque.innerHTML+=`<tr><td>${p.nome}</td><td>${p.quantidade}</td><td>${p.custo}</td></tr>`;
+    tabelaEstoque.innerHTML+=`
+      <tr>
+        <td>${p.nome}</td>
+        <td>${p.quantidade}</td>
+        <td>R$ ${p.custo}</td>
+      </tr>`;
   });
 }
 
 // HISTÓRICO
 async function carregarHistorico(){
-  const {data}=await supabaseClient.from("historico").select("*").order("data",{ascending:false});
+  const {data}=await supabaseClient
+    .from("historico")
+    .select("*")
+    .order("data",{ascending:false});
 
   tabelaHistorico.innerHTML="";
   data.forEach(h=>{
