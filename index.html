@@ -860,15 +860,39 @@ async function registrarVenda() {
 /* ── REGISTRAR COMPRA ── */
 async function registrarCompra() {
   const itens = document.querySelectorAll("#listaProdutos .product-row");
+
+  const freteTotal = parseFloat(freteCompra.value) || 0;
+  const fretePorItem = itens.length > 0 ? freteTotal / itens.length : 0;
+
   for (let item of itens) {
     const nome  = item.querySelector(".nome").value;
     const q     = parseInt(item.querySelector(".qtd").value);
     const custo = parseFloat(item.querySelector(".custo").value);
+
     if (!nome || !q || !custo) continue;
-    await supabaseClient.from("produtos").insert({ nome, quantidade: q, custo });
+
+    await supabaseClient.from("compras").insert({
+      nome,
+      quantidade: q,
+      custo,
+      frete: fretePorItem
+    });
+
+    await supabaseClient.from("produtos").insert({
+      nome,
+      quantidade: q,
+      custo
+    });
+
+    await supabaseClient.from("historico").insert({
+      tipo: "Compra",
+      descricao: nome,
+      valor: (custo * q) + fretePorItem
+    });
   }
+
   showToast('Compra registrada com sucesso!');
-  setTimeout(() => location.reload(), 1800);
+  setTimeout(() => location.reload(), 1200);
 }
 
 /* ── DASHBOARD ── */
@@ -879,10 +903,25 @@ async function dashboard() {
 ]);
 
 let totalC = 0, totalV = 0;
+let totalFrete = 0;
 
-// calcular investimento baseado no estoque
-(produtos || []).forEach(p => totalC += p.custo * p.quantidade);
-(vendas || []).forEach(v => totalV += v.preco_venda * v.quantidade);
+// estoque
+(produtos || []).forEach(p => {
+  totalC += p.custo * p.quantidade;
+});
+
+// frete (COLE AQUI 👇)
+(compras || []).forEach(c => {
+  totalFrete += c.frete || 0;
+});
+
+// soma frete no investimento
+totalC += totalFrete;
+
+// vendas
+(vendas || []).forEach(v => {
+  totalV += v.preco_venda * v.quantidade;
+});
 
   const lucroVal = totalV - totalC;
   const margem   = totalV > 0 ? (lucroVal / totalV * 100) : 0;
