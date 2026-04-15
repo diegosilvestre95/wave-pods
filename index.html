@@ -67,15 +67,17 @@ input, select {
   <button onclick="logout()">Sair</button>
 </header>
 
+<!-- LOGIN -->
 <div id="telaLogin" class="container">
   <div class="card">
     <h2>Login</h2>
     <input id="user" placeholder="Usuário">
     <input id="pass" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+    <button onclick="fazerLogin()">Entrar</button>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="container hidden">
 
   <!-- DASHBOARD -->
@@ -115,19 +117,19 @@ input, select {
 </div>
 
 <script>
-const supabase = supabase.createClient(
+const supabaseClient = supabase.createClient(
   "https://xxzvdwgcgcxycihswnyq.supabase.co",
   "sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc"
 );
 
 // LOGIN
-function login() {
-  const u = user.value;
-  const p = pass.value;
+function fazerLogin() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
 
   if (u === "Admin" && p === "Wave@2026") {
     localStorage.setItem("logado", "true");
-    iniciar();
+    iniciarSistema();
   } else {
     alert("Login inválido");
   }
@@ -138,91 +140,110 @@ function logout() {
   location.reload();
 }
 
-function iniciar() {
+function iniciarSistema() {
   document.getElementById("telaLogin").style.display = "none";
-  app.classList.remove("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
   carregarProdutos();
-  dashboard();
+  atualizarDashboard();
 }
 
 // AUTO LOGIN
-if (localStorage.getItem("logado")) iniciar();
+if (localStorage.getItem("logado")) {
+  iniciarSistema();
+}
 
 // CARREGAR PRODUTOS
 async function carregarProdutos() {
-  const { data } = await supabase.from("produtos").select("*");
+  const { data, error } = await supabaseClient
+    .from("produtos")
+    .select("*");
 
-  produto.innerHTML = "";
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const select = document.getElementById("produto");
+  select.innerHTML = "";
 
   data.forEach(p => {
-    produto.innerHTML += `<option value="${p.id}">${p.nome} (${p.quantidade})</option>`;
+    select.innerHTML += `<option value="${p.id}">
+      ${p.nome} (Estoque: ${p.quantidade})
+    </option>`;
   });
 }
 
-// VENDA
+// REGISTRAR VENDA
 async function registrarVenda() {
-  const prodId = produto.value;
-  const q = parseInt(qtd.value);
-  const precoVenda = parseFloat(preco.value);
+  const prodId = document.getElementById("produto").value;
+  const q = parseInt(document.getElementById("qtd").value);
+  const precoVenda = parseFloat(document.getElementById("preco").value);
 
-  const { data: prod } = await supabase
+  const { data: prod } = await supabaseClient
     .from("produtos")
     .select("*")
     .eq("id", prodId)
     .single();
 
-  await supabase.from("vendas").insert({
+  if (!prod || q > prod.quantidade) {
+    alert("Estoque insuficiente");
+    return;
+  }
+
+  await supabaseClient.from("vendas").insert({
     produto_id: prodId,
     quantidade: q,
     preco_venda: precoVenda
   });
 
-  await supabase.from("produtos")
+  await supabaseClient
+    .from("produtos")
     .update({ quantidade: prod.quantidade - q })
     .eq("id", prodId);
 
-  alert("Venda registrada");
+  alert("Venda registrada!");
   carregarProdutos();
-  dashboard();
+  atualizarDashboard();
 }
 
-// COMPRA
+// REGISTRAR COMPRA
 async function registrarCompra() {
-  const nome = nomeCompra.value;
-  const q = parseInt(qtdCompra.value);
-  const custo = parseFloat(custoCompra.value);
+  const nome = document.getElementById("nomeCompra").value;
+  const q = parseInt(document.getElementById("qtdCompra").value);
+  const custo = parseFloat(document.getElementById("custoCompra").value);
 
-  await supabase.from("compras").insert({
+  await supabaseClient.from("compras").insert({
     nome, quantidade: q, custo
   });
 
-  await supabase.from("produtos").insert({
+  await supabaseClient.from("produtos").insert({
     nome, quantidade: q, custo
   });
 
-  alert("Compra registrada");
+  alert("Compra registrada!");
   carregarProdutos();
-  dashboard();
+  atualizarDashboard();
 }
 
 // DASHBOARD
-async function dashboard() {
-  const { data: compras } = await supabase.from("compras").select("*");
-  const { data: vendas } = await supabase.from("vendas").select("*");
+async function atualizarDashboard() {
+  const { data: compras } = await supabaseClient.from("compras").select("*");
+  const { data: vendas } = await supabaseClient.from("vendas").select("*");
 
   let totalCompras = 0;
   let totalVendas = 0;
 
-  compras.forEach(c => totalCompras += c.custo * c.quantidade);
-  vendas.forEach(v => totalVendas += v.preco_venda * v.quantidade);
+  compras?.forEach(c => totalCompras += c.custo * c.quantidade);
+  vendas?.forEach(v => totalVendas += v.preco_venda * v.quantidade);
 
-  investido.innerText = totalCompras.toFixed(2);
-  lucro.innerText = (totalVendas - totalCompras).toFixed(2);
+  document.getElementById("investido").innerText = totalCompras.toFixed(2);
+  document.getElementById("lucro").innerText = (totalVendas - totalCompras).toFixed(2);
 }
 
-// EXPORTAR
+// EXPORTAR CSV
 async function exportar() {
-  const { data } = await supabase.from("vendas").select("*");
+  const { data } = await supabaseClient.from("vendas").select("*");
 
   let csv = "Quantidade,Preço\n";
 
