@@ -502,6 +502,102 @@ select option { background: #13131f; color: var(--text); }
 }
 
 .empty span { display: block; font-size: 28px; margin-bottom: 8px; }
+
+/* ───────────────── MOBILE FIX ───────────────── */
+@media (max-width: 600px) {
+
+  /* NAV SCROLL (resolve corte do menu) */
+  nav {
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  nav button {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  /* CONTAINER MAIS JUSTO */
+  .container {
+    padding: 20px 14px;
+  }
+
+  /* CARDS MAIS COMPACTOS */
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  /* GRID DO DASHBOARD */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* FORMULÁRIOS 100% STACK */
+  .form-grid,
+  .fg-2,
+  .fg-3,
+  .fg-3v {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* PRODUCT ROW (COMPRA) */
+  .product-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* BOTÕES */
+  .btn-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* TABELAS SCROLL */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* PREVIEW GRID */
+  .preview-grid {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  /* HEADER MAIS LIMPO */
+  header {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .logo-svg {
+    height: 28px;
+  }
+
+  /* SCROLL SUAVE (iPhone) */
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav {
+    -webkit-overflow-scrolling: touch;
+  }
+
+}
+  
 </style>
 </head>
 
