@@ -9,11 +9,12 @@
 
 <style>
 body {
-  font-family: Arial;
   margin: 0;
-  background: #f5f5f5;
+  font-family: Arial;
+  background: #f5f6fa;
 }
 
+/* HEADER */
 header {
   background: black;
   color: white;
@@ -23,29 +24,60 @@ header {
 }
 
 .logo {
-  color: #007bff;
+  color: #2f80ed;
   font-weight: bold;
 }
 
+/* MENU */
+nav {
+  background: #fff;
+  padding: 10px;
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+nav button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* CONTAINER */
 .container {
   padding: 20px;
 }
 
+/* CARD */
 .card {
   background: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
 }
 
-button {
+/* GRID DASH */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 15px;
+}
+
+.stat {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+/* BOTÃO */
+button.main {
   background: black;
   color: white;
   padding: 10px;
-  border: none;
   width: 100%;
   border-radius: 8px;
-  cursor: pointer;
+  border: none;
 }
 
 input, select {
@@ -54,9 +86,9 @@ input, select {
   margin: 5px 0;
 }
 
-.hidden {
-  display: none;
-}
+/* ESCONDER */
+.hidden { display: none; }
+
 </style>
 </head>
 
@@ -67,27 +99,34 @@ input, select {
   <button onclick="logout()">Sair</button>
 </header>
 
+<nav>
+  <button onclick="trocarTela('dashboard')">Dashboard</button>
+  <button onclick="trocarTela('vendas')">Vendas</button>
+  <button onclick="trocarTela('compras')">Compras</button>
+</nav>
+
 <!-- LOGIN -->
-<div id="telaLogin" class="container">
+<div id="loginTela" class="container">
   <div class="card">
     <h2>Login</h2>
     <input id="user" placeholder="Usuário">
     <input id="pass" type="password" placeholder="Senha">
-    <button onclick="fazerLogin()">Entrar</button>
+    <button class="main" onclick="login()">Entrar</button>
   </div>
 </div>
 
 <!-- APP -->
-<div id="app" class="container hidden">
+<div id="app" class="hidden">
 
-  <!-- DASHBOARD -->
-  <div class="card">
-    <h3>Dashboard</h3>
-    <p>Total investido: R$ <span id="investido">0</span></p>
-    <p>Lucro: R$ <span id="lucro">0</span></p>
+<div id="dashboard" class="container">
+  <div class="grid">
+    <div class="stat">Investido: R$ <span id="investido">0</span></div>
+    <div class="stat">Receita: R$ <span id="receita">0</span></div>
+    <div class="stat">Lucro: R$ <span id="lucro">0</span></div>
   </div>
+</div>
 
-  <!-- VENDAS -->
+<div id="vendas" class="container hidden">
   <div class="card">
     <h3>Nova Venda</h3>
 
@@ -95,24 +134,22 @@ input, select {
     <input type="number" id="qtd" placeholder="Quantidade">
     <input type="number" id="preco" placeholder="Preço venda">
 
-    <button onclick="registrarVenda()">Registrar venda</button>
+    <button class="main" onclick="registrarVenda()">Registrar venda</button>
   </div>
+</div>
 
-  <!-- COMPRAS -->
+<div id="compras" class="container hidden">
   <div class="card">
     <h3>Nova Compra</h3>
 
     <input id="nomeCompra" placeholder="Produto">
     <input type="number" id="qtdCompra" placeholder="Quantidade">
-    <input type="number" id="custoCompra" placeholder="Custo">
+    <input type="number" id="custoCompra" placeholder="Custo produto">
+    <input type="number" id="freteCompra" placeholder="Frete">
 
-    <button onclick="registrarCompra()">Registrar compra</button>
+    <button class="main" onclick="registrarCompra()">Registrar compra</button>
   </div>
-
-  <!-- EXPORT -->
-  <div class="card">
-    <button onclick="exportar()">Exportar Excel</button>
-  </div>
+</div>
 
 </div>
 
@@ -123,15 +160,10 @@ const supabaseClient = supabase.createClient(
 );
 
 // LOGIN
-function fazerLogin() {
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-
-  if (u === "Admin" && p === "Wave@2026") {
+function login() {
+  if (user.value === "Admin" && pass.value === "Wave@2026") {
     localStorage.setItem("logado", "true");
-    iniciarSistema();
-  } else {
-    alert("Login inválido");
+    iniciar();
   }
 }
 
@@ -140,56 +172,45 @@ function logout() {
   location.reload();
 }
 
-function iniciarSistema() {
-  document.getElementById("telaLogin").style.display = "none";
-  document.getElementById("app").classList.remove("hidden");
-
+function iniciar() {
+  loginTela.style.display = "none";
+  app.classList.remove("hidden");
   carregarProdutos();
-  atualizarDashboard();
+  dashboard();
 }
 
-// AUTO LOGIN
-if (localStorage.getItem("logado")) {
-  iniciarSistema();
+if (localStorage.getItem("logado")) iniciar();
+
+// TROCAR TELA
+function trocarTela(tela) {
+  ["dashboard","vendas","compras"].forEach(id => {
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById(tela).classList.remove("hidden");
 }
 
-// CARREGAR PRODUTOS
+// PRODUTOS
 async function carregarProdutos() {
-  const { data, error } = await supabaseClient
-    .from("produtos")
-    .select("*");
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  const select = document.getElementById("produto");
-  select.innerHTML = "";
-
+  const { data } = await supabaseClient.from("produtos").select("*");
+  produto.innerHTML = "";
   data.forEach(p => {
-    select.innerHTML += `<option value="${p.id}">
-      ${p.nome} (Estoque: ${p.quantidade})
+    produto.innerHTML += `<option value="${p.id}">
+      ${p.nome} (${p.quantidade})
     </option>`;
   });
 }
 
-// REGISTRAR VENDA
+// VENDA
 async function registrarVenda() {
-  const prodId = document.getElementById("produto").value;
-  const q = parseInt(document.getElementById("qtd").value);
-  const precoVenda = parseFloat(document.getElementById("preco").value);
+  const prodId = produto.value;
+  const q = parseInt(qtd.value);
+  const precoVenda = parseFloat(preco.value);
 
   const { data: prod } = await supabaseClient
     .from("produtos")
     .select("*")
     .eq("id", prodId)
     .single();
-
-  if (!prod || q > prod.quantidade) {
-    alert("Estoque insuficiente");
-    return;
-  }
 
   await supabaseClient.from("vendas").insert({
     produto_id: prodId,
@@ -202,61 +223,43 @@ async function registrarVenda() {
     .update({ quantidade: prod.quantidade - q })
     .eq("id", prodId);
 
-  alert("Venda registrada!");
-  carregarProdutos();
-  atualizarDashboard();
+  alert("Venda registrada");
+  dashboard();
 }
 
-// REGISTRAR COMPRA
+// COMPRA COM FRETE
 async function registrarCompra() {
-  const nome = document.getElementById("nomeCompra").value;
-  const q = parseInt(document.getElementById("qtdCompra").value);
-  const custo = parseFloat(document.getElementById("custoCompra").value);
+  const nome = nomeCompra.value;
+  const q = parseInt(qtdCompra.value);
+  const custo = parseFloat(custoCompra.value);
+  const frete = parseFloat(freteCompra.value || 0);
 
   await supabaseClient.from("compras").insert({
-    nome, quantidade: q, custo
+    nome, quantidade: q, custo, frete
   });
 
   await supabaseClient.from("produtos").insert({
-    nome, quantidade: q, custo
+    nome, quantidade: q, custo: custo + (frete/q)
   });
 
-  alert("Compra registrada!");
-  carregarProdutos();
-  atualizarDashboard();
+  alert("Compra registrada");
+  dashboard();
 }
 
 // DASHBOARD
-async function atualizarDashboard() {
+async function dashboard() {
   const { data: compras } = await supabaseClient.from("compras").select("*");
   const { data: vendas } = await supabaseClient.from("vendas").select("*");
 
   let totalCompras = 0;
   let totalVendas = 0;
 
-  compras?.forEach(c => totalCompras += c.custo * c.quantidade);
-  vendas?.forEach(v => totalVendas += v.preco_venda * v.quantidade);
+  compras.forEach(c => totalCompras += (c.custo * c.quantidade) + c.frete);
+  vendas.forEach(v => totalVendas += v.preco_venda * v.quantidade);
 
-  document.getElementById("investido").innerText = totalCompras.toFixed(2);
-  document.getElementById("lucro").innerText = (totalVendas - totalCompras).toFixed(2);
-}
-
-// EXPORTAR CSV
-async function exportar() {
-  const { data } = await supabaseClient.from("vendas").select("*");
-
-  let csv = "Quantidade,Preço\n";
-
-  data.forEach(v => {
-    csv += `${v.quantidade},${v.preco_venda}\n`;
-  });
-
-  const blob = new Blob([csv]);
-  const a = document.createElement("a");
-
-  a.href = URL.createObjectURL(blob);
-  a.download = "relatorio.csv";
-  a.click();
+  investido.innerText = totalCompras.toFixed(2);
+  receita.innerText = totalVendas.toFixed(2);
+  lucro.innerText = (totalVendas - totalCompras).toFixed(2);
 }
 </script>
 
