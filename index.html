@@ -860,60 +860,41 @@ async function registrarVenda() {
 /* ── REGISTRAR COMPRA ── */
 async function registrarCompra() {
   const itens = document.querySelectorAll("#listaProdutos .product-row");
+  const frete = parseFloat(freteCompra.value) || 0;
 
   for (let item of itens) {
     const nome  = item.querySelector(".nome").value;
     const q     = parseInt(item.querySelector(".qtd").value);
-    const custo = parseFloat(item.querySelector(".custo").value);
+    let custo   = parseFloat(item.querySelector(".custo").value);
 
     if (!nome || !q || !custo) continue;
+
+    custo += frete;
 
     await supabaseClient.from("produtos").insert({
       nome,
       quantidade: q,
       custo
     });
-    
-    await supabaseClient.from("compras").insert({
-      nome,
-      quantidade: q,
-      custo
-    });
-  }
-  const frete = parseFloat(freteCompra.value) || 0;
-
-  if (frete > 0) {
-    await supabaseClient.from("compras").insert({
-      nome: "Frete",
-      quantidade: 1,
-      custo: frete
-    });
   }
 
   showToast('Compra registrada com sucesso!');
-  setTimeout(() => location.reload(), 1200);
+  setTimeout(() => location.reload(), 1800);
 }
 
 /* ── DASHBOARD ── */
 async function dashboard() {
   const [{ data: compras }, { data: vendas }, { data: produtos }] = await Promise.all([
-  supabaseClient.from("compras").select("*"),
-  supabaseClient.from("vendas").select("*"),
-  supabaseClient.from("produtos").select("*"),
-
+    supabaseClient.from("compras").select("*"),
+    supabaseClient.from("vendas").select("*"),
+    supabaseClient.from("produtos").select("*"),
   ]);
- let totalC = 0, totalV = 0;
-    (compras || []).forEach(c => {
-      const custo = Number(c.custo) || 0;
-      const qtd   = Number(c.quantidade) || 0;
 
-      totalC += custo * qtd;
+  let totalC = 0, totalV = 0;
+  (produtos || []).forEach(p => {
+  totalC += (p.custo || 0) * (p.quantidade || 0);
 });
-  
-});
-  (vendas || []).forEach(v => {
-    totalV += (v.preco_venda || 0) * (v.quantidade || 0);
-});
+  (vendas  || []).forEach(v => totalV += v.preco_venda * v.quantidade);
 
   const lucroVal = totalV - totalC;
   const margem   = totalV > 0 ? (lucroVal / totalV * 100) : 0;
