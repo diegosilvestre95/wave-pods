@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WavePod - Interno</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0e14; --card: #161b22; --border: #30363d;
+            --blue: #00d4ff; --pink: #d946ef; --text: #ffffff; --sub: #8b949e;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: env(safe-area-inset-top) 15px; }
+        .wp-logo { font-size: 28px; font-weight: 800; text-align: center; padding: 25px 0; background: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--sub); padding: 10px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 14px; }
+        .nav-btn.active { background: var(--blue); color: #000; font-weight: 600; border-color: var(--blue); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 15px; }
+        input, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
+        .btn-main { background: linear-gradient(90deg, var(--blue), var(--pink)); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: 800; width: 100%; cursor: pointer; margin-top: 10px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 8px; margin-bottom: 10px; align-items: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { text-align: left; color: var(--sub); padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 0; border-bottom: 1px solid #252a33; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const supabase = supabase.createClient('https://xxzvdwgcgcxycihswnyq.supabase.co', 'sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc');
+
+        const fmt = (n) => `R$ ${Number(n || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+        function App() {
+            const [logged, setLogged] = useState(false);
+            const [tab, setTab] = useState('dashboard');
+            const [stock, setStock] = useState([]);
+            const [compraItems, setCompraItems] = useState([{ name: '', cost: '', qty: '' }]);
+            
+            // Login Unificado
+            if (!logged) return <Login onLogin={(u, p) => (u === 'admin' && p === 'Wave@Lucas10Diego') ? setLogged(true) : alert('Erro')} />;
+
+            // Carregar dados sincronizados do Supabase
+            useEffect(() => { loadStock(); }, []);
+            async function loadStock() {
+                const { data } = await supabase.from('estoque').select('*').order('produto');
+                setStock(data || []);
+            }
+
+            return (
+                <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+                    <div className="wp-logo">WAVEPOD</div>
+                    
+                    <div className="nav">
+                        {['Dashboard', 'Compra', 'Venda', 'Estoque', 'Histórico'].map(t => (
+                            <button key={t} className={`nav-btn ${tab === t.toLowerCase() ? 'active' : ''}`} onClick={() => setTab(t.toLowerCase())}>{t}</button>
+                        ))}
+                    </div>
+
+                    {tab === 'dashboard' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <div className="card"><small style={{color: 'var(--sub)'}}>INVESTIDO</small><h3>{fmt(570)}</h3></div>
+                            <div className="card"><small style={{color: 'var(--sub)'}}>LUCRO</small><h3 style={{color: 'var(--blue)'}}>{fmt(0)}</h3></div>
+                        </div>
+                    )}
+
+                    {tab === 'compra' && (
+                        <div className="card">
+                            <h3 style={{marginTop:0}}>Nova Compra</h3>
+                            {compraItems.map((it, i) => (
+                                <div key={i} className="item-row">
+                                    <input placeholder="Produto" value={it.name} onChange={e => {
+                                        const n = [...compraItems]; n[i].name = e.target.value; setCompraItems(n);
+                                    }}/>
+                                    <input type="number" placeholder="Custo" onChange={e => {
+                                        const n = [...compraItems]; n[i].cost = e.target.value; setCompraItems(n);
+                                    }}/>
+                                    <input type="number" placeholder="Qtd" onChange={e => {
+                                        const n = [...compraItems]; n[i].qty = e.target.value; setCompraItems(n);
+                                    }}/>
+                                    <button onClick={() => setCompraItems(compraItems.filter((_, idx) => idx !== i))} style={{background:'none', border:'none', color:'red'}}>✕</button>
+                                </div>
+                            ))}
+                            <button onClick={() => setCompraItems([...compraItems, {name:'', cost:'', qty:''}])} style={{background:'none', border:'1px dashed var(--sub)', color: 'var(--sub)', width:'100%', padding:10, borderRadius:8, marginBottom:15, cursor:'pointer'}}>+ Adicionar outro produto</button>
+                            <button className="btn-main">Salvar Compra e Sincronizar</button>
+                        </div>
+                    )}
+
+                    {tab === 'venda' && (
+                        <div className="card">
+                            <h3 style={{marginTop:0}}>Registrar Venda</h3>
+                            <select>
+                                <option>Selecione o produto no estoque...</option>
+                                {stock.map(s => <option key={s.id} value={s.id}>{s.produto} ({s.quantidade} un)</option>)}
+                            </select>
+                            <input type="number" placeholder="Quantidade vendida" />
+                            <input type="number" placeholder="Preço de Venda (R$)" />
+                            <div style={{background: '#0d1117', padding: 15, borderRadius: 10, marginTop: 10}}>
+                                <small style={{color: 'var(--sub)'}}>LUCRO ESTIMADO NESTA VENDA</small>
+                                <h2 style={{margin: '5px 0 0', color: 'var(--blue)'}}>{fmt(0)}</h2>
+                            </div>
+                            <button className="btn-main">Confirmar Venda</button>
+                        </div>
+                    )}
+
+                    {tab === 'estoque' && (
+                        <div className="card">
+                            <h3 style={{marginTop:0}}>Estoque Atual</h3>
+                            <table>
+                                <thead><tr><th>Produto</th><th>Qtd</th><th>Custo Médio</th></tr></thead>
+                                <tbody>
+                                    {stock.map(s => (
+                                        <tr key={s.id}>
+                                            <td>{s.produto}</td>
+                                            <td>{s.quantidade}</td>
+                                            <td>{fmt(s.custo_medio)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function Login({ onLogin }) {
+            const [u, setU] = useState(''); const [p, setP] = useState('');
+            return (
+                <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'90vh'}}>
+                    <div className="card" style={{width:'100%', maxWidth:'300px', textAlign:'center'}}>
+                        <div className="wp-logo">WAVEPOD</div>
+                        <input placeholder="Usuário" onChange={e=>setU(e.target.value)} />
+                        <input type="password" placeholder="Senha" onChange={e=>setP(e.target.value)} />
+                        <button className="btn-main" onClick={()=>onLogin(u,p)}>Entrar</button>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
