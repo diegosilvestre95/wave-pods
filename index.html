@@ -873,11 +873,17 @@ async function registrarCompra() {
       quantidade: q,
       custo
     });
+    
+    await supabaseClient.from("compras").insert({
+      nome,
+      quantidade: q,
+      custo
+    });
   }
   const frete = parseFloat(freteCompra.value) || 0;
 
   if (frete > 0) {
-    await supabaseClient.from("produtos").insert({
+    await supabaseClient.from("compras").insert({
       nome: "Frete",
       quantidade: 1,
       custo: frete
@@ -885,7 +891,7 @@ async function registrarCompra() {
   }
 
   showToast('Compra registrada com sucesso!');
-  setTimeout(() => location.reload(), 1800);
+  setTimeout(() => location.reload(), 1200);
 }
 
 /* ── DASHBOARD ── */
@@ -894,11 +900,16 @@ async function dashboard() {
   supabaseClient.from("compras").select("*"),
   supabaseClient.from("vendas").select("*"),
   supabaseClient.from("produtos").select("*"),
-]);
 
+  ]);
  let totalC = 0, totalV = 0;
-  (produtos || []).forEach(p => {
-    totalC += (p.custo || 0) * (p.quantidade || 0);
+    (compras || []).forEach(c => {
+      const custo = Number(c.custo) || 0;
+      const qtd   = Number(c.quantidade) || 0;
+
+      totalC += custo * qtd;
+});
+  
 });
   (vendas || []).forEach(v => {
     totalV += (v.preco_venda || 0) * (v.quantidade || 0);
