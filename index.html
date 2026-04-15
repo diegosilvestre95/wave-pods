@@ -903,8 +903,10 @@ async function dashboard() {
     supabaseClient.from("produtos").select("*"),
   ]);
 
-  let totalC = 0, totalV = 0;
-  (compras || []).forEach(c => totalC += c.custo * c.quantidade);
+ let totalC = 0;
+(produtos || []).forEach(p => {
+  totalC += (p.custo || 0) * (p.quantidade || 0);
+});
   (vendas  || []).forEach(v => totalV += v.preco_venda * v.quantidade);
 
   const lucroVal = totalV - totalC;
