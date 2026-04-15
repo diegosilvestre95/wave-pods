@@ -873,15 +873,16 @@ async function registrarCompra() {
 
 /* ── DASHBOARD ── */
 async function dashboard() {
-  const [{ data: compras }, { data: vendas }, { data: produtos }] = await Promise.all([
-    supabaseClient.from("compras").select("*"),
-    supabaseClient.from("vendas").select("*"),
-    supabaseClient.from("produtos").select("*"),
-  ]);
+  const [{ data: vendas }, { data: produtos }] = await Promise.all([
+  supabaseClient.from("vendas").select("*"),
+  supabaseClient.from("produtos").select("*"),
+]);
 
-  let totalC = 0, totalV = 0;
-  (compras || []).forEach(c => totalC += c.custo * c.quantidade);
-  (vendas  || []).forEach(v => totalV += v.preco_venda * v.quantidade);
+let totalC = 0, totalV = 0;
+
+// calcular investimento baseado no estoque
+(produtos || []).forEach(p => totalC += p.custo * p.quantidade);
+(vendas || []).forEach(v => totalV += v.preco_venda * v.quantidade);
 
   const lucroVal = totalV - totalC;
   const margem   = totalV > 0 ? (lucroVal / totalV * 100) : 0;
