@@ -1203,23 +1203,7 @@ select option { background: #13131f; color: var(--text); }
       <span id="precoSavedMsg" style="color:var(--green);font-size:13px;display:none">✓ Salvo!</span>
     </div>
   </div>
-  <div class="card" style="max-width:700px;background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.2)">
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <span style="font-size:22px">⚠️</span>
-      <div>
-        <div style="font-weight:600;margin-bottom:6px;font-size:14px;color:var(--amber)">Segurança — Boas Práticas</div>
-        <ul style="color:var(--muted);font-size:12px;line-height:1.8;margin:0;padding-left:16px">
-          <li>No Supabase, ative <strong style="color:var(--text)">Row Level Security (RLS)</strong> em todas as tabelas</li>
-          <li>Configure políticas para que a tabela <code>pedidos</code> aceite INSERT de anon, mas SELECT/UPDATE apenas de usuários autenticados</li>
-          <li>A tabela <code>produtos</code> deve ter apenas SELECT permitido para anon — inserts só via service role</li>
-          <li>Nunca exponha a <strong style="color:var(--red)">Service Role Key</strong> no HTML — use apenas a Anon/Publishable Key</li>
-          <li>No GitHub, certifique-se de que o repositório é <strong style="color:var(--text)">privado</strong> e nunca commite credenciais hardcoded</li>
-          <li>Adicione o domínio do site nas <strong style="color:var(--text)">Allowed Origins</strong> do Supabase (Authentication → URL Configuration)</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 </div><!-- /wrapper -->
 </div><!-- /app -->
