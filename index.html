@@ -900,7 +900,7 @@ function addCompraItem() {
   const div=document.createElement('div');
   div.className='compra-row'; div.id='cRow'+id;
 
-  const prodOpts=CATALOGO.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+  const prodOpts = produtosDB.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
 
   div.innerHTML=`
     <div class="compra-grid">
