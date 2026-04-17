@@ -793,6 +793,118 @@ select option { background: #13131f; color: var(--text); }
   cursor: pointer;
 }
 
+/* ── WHATSAPP CONTACT BUTTONS ── */
+.wa-float {
+  position: fixed;
+  bottom: 90px;
+  right: 16px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.wa-float-main {
+  width: 52px; height: 52px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(37,211,102,.4);
+  cursor: pointer;
+  border: none;
+  transition: transform .2s, box-shadow .2s;
+  font-size: 26px;
+}
+.wa-float-main:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(37,211,102,.55); }
+.wa-contacts {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+  transition: all .25s;
+}
+.wa-contacts.hidden { display: none !important; }
+.wa-contact-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(15,15,28,.95);
+  border: 1px solid #25D366;
+  border-radius: 24px;
+  padding: 8px 16px 8px 10px;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  backdrop-filter: blur(16px);
+  transition: background .2s;
+}
+.wa-contact-btn:hover { background: rgba(37,211,102,.15); }
+.wa-contact-avatar {
+  width: 30px; height: 30px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ── NOTIFICATION POPUP (admin) ── */
+.notif-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 600;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 80px;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+.notif-box {
+  background: rgba(15,15,28,.98);
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  max-width: 420px;
+  width: calc(100% - 32px);
+  box-shadow: 0 0 40px rgba(74,222,128,.2);
+  animation: slideDown .3s ease;
+}
+@keyframes slideDown { from { transform:translateY(-20px);opacity:0 } to { transform:translateY(0);opacity:1 } }
+.notif-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.notif-icon { font-size:28px; }
+.notif-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--green); }
+.notif-body { font-size:13px; line-height:1.7; color:var(--text); margin-bottom:18px; }
+.notif-body strong { color:var(--green); }
+.notif-actions { display:flex; gap:10px; flex-wrap:wrap; }
+
+/* ── PRICE PANEL (admin) ── */
+.price-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.price-card-info { flex:1; min-width: 160px; }
+.price-card-emoji { font-size: 28px; margin-bottom:6px; display:block; }
+.price-card-name { font-family:'Syne',sans-serif; font-weight:700; font-size:15px; margin:0 0 2px; }
+.price-card-desc { font-size:12px; color:var(--muted); }
+.price-input-wrap { display:flex; align-items:center; gap:10px; }
+.price-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+
+/* ── STOCK BADGE ON PRODUCT CARD ── */
+.stock-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+.stock-ok    { background:rgba(74,222,128,.12); color:var(--green); }
+.stock-low   { background:rgba(251,191,36,.12); color:var(--amber); }
+.stock-out   { background:rgba(248,113,113,.12); color:var(--red); }
+
 /* ── LOGOUT BTN ── */
 .btn-logout {
   background: none;
@@ -891,6 +1003,7 @@ select option { background: #13131f; color: var(--text); }
   <button id="nav-vendas"    onclick="trocarTela('vendas')">Vendas</button>
   <button id="nav-compras"   onclick="trocarTela('compras')">Compras</button>
   <button id="nav-estoque"   onclick="trocarTela('estoque')">Estoque</button>
+  <button id="nav-precos"    onclick="trocarTela('precos')">💰 Preços</button>
   <button id="nav-pedidos"   onclick="trocarTela('pedidos')">Pedidos</button>
   <button id="nav-historico" onclick="trocarTela('historico')">Histórico</button>
 </nav>
@@ -1035,12 +1148,24 @@ select option { background: #13131f; color: var(--text); }
 
 <!-- ══ PEDIDOS ══ -->
 <div id="pedidos" class="container hidden">
-  <h2 class="section-title">Pedidos de clientes</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <h2 class="section-title" style="margin:0">Pedidos de clientes</h2>
+    <div style="display:flex;gap:8px">
+      <a href="https://wa.me/5511958438636" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;text-decoration:none">
+        💬 Diego
+      </a>
+      <a href="https://wa.me/5511978378289" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;background:#128C7E;color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;text-decoration:none">
+        💬 Lucas
+      </a>
+    </div>
+  </div>
   <div class="card">
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Nº Pedido</th><th>Cliente</th><th>WhatsApp</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Data</th></tr>
+          <tr><th>Nº Pedido</th><th>Cliente</th><th>WhatsApp</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Data</th><th>Contato</th></tr>
         </thead>
         <tbody id="tabelaPedidos"></tbody>
       </table>
@@ -1065,8 +1190,43 @@ select option { background: #13131f; color: var(--text); }
   </div>
 </div>
 
+<!-- ══ PREÇOS ══ -->
+<div id="precos" class="container hidden">
+  <h2 class="section-title">Preços do Catálogo</h2>
+  <div class="card" style="max-width:700px;margin-bottom:16px">
+    <p style="color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.6">
+      Defina o preço de venda exibido no catálogo para os clientes. O custo de compra permanece separado no estoque.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:14px" id="priceCardsList"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="salvarPrecos()">Salvar Preços ✓</button>
+      <span id="precoSavedMsg" style="color:var(--green);font-size:13px;display:none">✓ Salvo!</span>
+    </div>
+  </div>
+
+
 </div><!-- /wrapper -->
 </div><!-- /app -->
+
+<!-- ══ NOTIFICATION POPUP (admin) ══ -->
+<div id="notifOverlay" class="notif-overlay hidden">
+  <div class="notif-box">
+    <div class="notif-header">
+      <span class="notif-icon">🔔</span>
+      <div>
+        <div class="notif-title">Novo Pedido Recebido!</div>
+        <div style="font-size:11px;color:var(--muted)">WavePod · Pedido via site</div>
+      </div>
+    </div>
+    <div class="notif-body" id="notifBody">—</div>
+    <div class="notif-actions">
+      <button class="btn-primary" onclick="irParaPedidos()" style="font-size:13px;padding:10px 18px">Ver Pedidos</button>
+      <a id="notifWaDiego" href="#" target="_blank" class="btn-ghost" style="font-size:13px;padding:10px 18px;text-decoration:none">📲 Diego</a>
+      <a id="notifWaLucas" href="#" target="_blank" class="btn-ghost" style="font-size:13px;padding:10px 18px;text-decoration:none">📲 Lucas</a>
+      <button class="btn-ghost" onclick="fecharNotif()" style="font-size:13px;padding:10px 14px">Fechar</button>
+    </div>
+  </div>
+</div>
 
 
 <!-- ══════════════════════════════════════════
@@ -1093,7 +1253,7 @@ select option { background: #13131f; color: var(--text); }
   <!-- VIEW: Catálogo -->
   <div id="clienteCatalogo">
     <div class="cliente-hero">
-      <h1>Nosso Cardápio 🌊</h1>
+      <h1>Nossos Produtos 🌊</h1>
       <p>Escolha seu pod favorito e faça seu pedido agora</p>
     </div>
 
@@ -1170,7 +1330,15 @@ select option { background: #13131f; color: var(--text); }
       <p style="color:var(--muted);font-size:13px;margin:0 0 8px">Número do seu pedido</p>
       <div class="success-num" id="successNumero">#0000</div>
       <p class="success-sub">Entraremos em contato pelo WhatsApp em breve para confirmar e combinar a entrega!</p>
-      <button class="btn-primary" onclick="voltarCatalogo()">Fazer outro pedido</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px">
+        <a id="successWaDiego" href="https://wa.me/5511958438636" target="_blank" class="btn-primary" style="font-size:13px;padding:10px 18px;text-decoration:none">
+          💬 Falar com Diego
+        </a>
+        <a id="successWaLucas" href="https://wa.me/5511978378289" target="_blank" class="btn-primary" style="font-size:13px;padding:10px 18px;text-decoration:none;background:linear-gradient(110deg,#25D366,#128C7E)">
+          💬 Falar com Lucas
+        </a>
+      </div>
+      <button class="btn-ghost" onclick="voltarCatalogo()">Fazer outro pedido</button>
     </div>
   </div>
 
@@ -1185,6 +1353,7 @@ select option { background: #13131f; color: var(--text); }
       <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="abrirCheckout()">Pedir →</button>
     </div>
   </div>
+
 
 </div><!-- /clienteApp -->
 
@@ -1217,13 +1386,15 @@ const WA_CALLMEBOT_KEY_ADMIN = 'XXXXXXXX'; // Substitua pela sua API key
 const WA_CALLMEBOT_KEY_SOCIO = 'YYYYYYYY'; // Substitua pela API key do sócio
 
 // ⚙️ CATÁLOGO DE PRODUTOS
+// preco = preço de venda ao cliente final (padrão R$90)
+// O custo de compra fica separado na tabela 'produtos' do Supabase
 const CATALOGO = [
   {
     linha: 'v80',
     nome: 'V80 Ignite',
     desc: '8.000 puffs',
     emoji: '💨',
-    preco: 55.00,  // ← Altere o preço de venda aqui
+    preco: 90.00,  // ← Preço de venda ao cliente (editável pelo painel Preços)
     sabores: [
       'Strawberry Kiwi',
       'Grapefruit Mint',
@@ -1237,7 +1408,7 @@ const CATALOGO = [
     nome: 'Elfbar',
     desc: '10.000 puffs',
     emoji: '⚡',
-    preco: 65.00,  // ← Altere o preço de venda aqui
+    preco: 90.00,  // ← Preço de venda ao cliente (editável pelo painel Preços)
     sabores: [
       'Strawberry Banana',
       'Cherry Red Apple Lemon',
@@ -1254,6 +1425,8 @@ const CATALOGO = [
 let currentUser   = null;
 let cart          = [];
 let pagamentoSel  = null;
+let estoqueMap    = {};   // { 'v80': qtd_total, 'elfbar': qtd_total }
+let realtimeSub   = null;
 
 /* ────────────────────────────────────────
    TOAST
@@ -1315,6 +1488,8 @@ function iniciarAdmin() {
   carregarProdutos();
   dashboard();
   carregarHistorico();
+  carregarPrecosSalvos(); // carrega preços editados
+  iniciarRealtimePedidos(); // notificações em tempo real
   document.getElementById('nav-dashboard').classList.add('active');
 }
 
@@ -1322,7 +1497,7 @@ function iniciarAdmin() {
    NAVEGAÇÃO (ADMIN)
 ──────────────────────────────────────── */
 function trocarTela(t) {
-  ['dashboard','vendas','compras','estoque','pedidos','historico'].forEach(x => {
+  ['dashboard','vendas','compras','estoque','precos','pedidos','historico'].forEach(x => {
     document.getElementById(x).classList.add('hidden');
     const btn = document.getElementById('nav-' + x);
     if (btn) btn.classList.remove('active');
@@ -1334,6 +1509,7 @@ function trocarTela(t) {
   if (t === 'estoque')   carregarEstoqueCompleto();
   if (t === 'historico') carregarHistorico();
   if (t === 'pedidos')   carregarPedidos();
+  if (t === 'precos')    renderPainelPrecos();
 }
 
 /* ────────────────────────────────────────
@@ -1600,45 +1776,253 @@ async function carregarPedidos() {
   empty.classList.add('hidden');
 
   data.forEach(p => {
-    const itensTexto = JSON.parse(p.itens || '[]').map(i => `${i.nome} ${i.sabor} x${i.qty}`).join(', ');
+    const itens = JSON.parse(p.itens || '[]');
+    const itensTexto = itens.map(i => `${i.nome} · ${i.sabor} ×${i.qty}`).join(', ');
     const dataHora = p.created_at
       ? new Date(p.created_at).toLocaleString('pt-BR', {
           day:'2-digit', month:'2-digit', year:'numeric',
           hour:'2-digit', minute:'2-digit'
         })
       : '—';
+
+    // Status com select para alterar
     const statusCls = p.status === 'Confirmado' ? 'pedido-status-conf' :
                       p.status === 'Cancelado'  ? 'pedido-status-canc' :
                       'pedido-status-pend';
-    const waLink = p.cliente_whatsapp
-      ? `<a href="https://wa.me/55${p.cliente_whatsapp.replace(/\D/g,'')}" target="_blank" style="color:#4ade80">${p.cliente_whatsapp}</a>`
+
+    // Telefone do cliente — limpa e monta wa.me com +55
+    const waRaw = (p.cliente_whatsapp || '').replace(/\D/g, '');
+    // Se já começa com 55 e tem 13 dígitos, usa direto; caso contrário adiciona 55
+    const waNum = waRaw.startsWith('55') && waRaw.length >= 12 ? waRaw : '55' + waRaw;
+    const waLink = waRaw
+      ? `<a href="https://wa.me/${waNum}" target="_blank"
+            style="color:#4ade80;display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-weight:600">
+            <span style="font-size:15px">📲</span>${p.cliente_whatsapp}
+         </a>`
       : '—';
+
+    // Mensagem pré-preenchida para contato rápido com o cliente
+    const msgCliente = encodeURIComponent(
+      `Olá ${p.cliente_nome}! 👋\nAqui é a WavePod. Seu pedido ${p.numero_pedido} está sendo processado.\nAlguma dúvida?`
+    );
+    const msgAdmins = encodeURIComponent(
+      `🌊 Pedido ${p.numero_pedido}\nCliente: ${p.cliente_nome} ${p.cliente_sobrenome||''} (${p.cliente_whatsapp})\n` +
+      itens.map(i=>`• ${i.nome} - ${i.sabor} x${i.qty}`).join('\n') +
+      `\nTotal: R$ ${parseFloat(p.total).toFixed(2)} (${p.pagamento})`
+    );
 
     tbody.innerHTML += `<tr>
       <td><strong style="font-family:Syne,sans-serif">${p.numero_pedido}</strong></td>
-      <td>${p.cliente_nome} ${p.cliente_sobrenome || ''}</td>
-      <td>${waLink}</td>
-      <td style="font-size:12px;max-width:180px">${itensTexto}</td>
+      <td style="font-weight:500">${p.cliente_nome} ${p.cliente_sobrenome || ''}</td>
+      <td>
+        ${waLink}
+        ${waRaw ? `<br><a href="https://wa.me/${waNum}?text=${msgCliente}" target="_blank"
+          style="font-size:10px;color:var(--muted);text-decoration:none;margin-top:3px;display:inline-block">
+          Contatar cliente →</a>` : ''}
+      </td>
+      <td style="font-size:12px;max-width:160px;line-height:1.5">${itensTexto}</td>
       <td><strong style="color:var(--green)">R$ ${parseFloat(p.total).toFixed(2)}</strong></td>
       <td>${p.pagamento}</td>
-      <td><span class="${statusCls}">${p.status}</span></td>
+      <td>
+        <select class="status-select ${statusCls}" onchange="atualizarStatusPedido('${p.id}', this)">
+          <option ${p.status==='Pendente'?'selected':''}>Pendente</option>
+          <option ${p.status==='Confirmado'?'selected':''}>Confirmado</option>
+          <option ${p.status==='Cancelado'?'selected':''}>Cancelado</option>
+        </select>
+      </td>
       <td style="color:var(--muted);font-size:12px;white-space:nowrap">${dataHora}</td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <a href="https://wa.me/5511958438636?text=${msgAdmins}" target="_blank"
+            style="font-size:11px;background:rgba(37,211,102,.12);color:#4ade80;border:1px solid rgba(37,211,102,.25);border-radius:6px;padding:3px 8px;text-decoration:none;white-space:nowrap">
+            📲 Diego
+          </a>
+          <a href="https://wa.me/5511978378289?text=${msgAdmins}" target="_blank"
+            style="font-size:11px;background:rgba(37,211,102,.12);color:#4ade80;border:1px solid rgba(37,211,102,.25);border-radius:6px;padding:3px 8px;text-decoration:none;white-space:nowrap">
+            📲 Lucas
+          </a>
+        </div>
+      </td>
     </tr>`;
   });
+}
+
+async function atualizarStatusPedido(id, sel) {
+  const novoStatus = sel.value;
+  sel.className = 'status-select ' +
+    (novoStatus === 'Confirmado' ? 'pedido-status-conf' :
+     novoStatus === 'Cancelado'  ? 'pedido-status-canc' : 'pedido-status-pend');
+  await supabaseClient.from('pedidos').update({ status: novoStatus }).eq('id', id);
+  showToast(`Status atualizado: ${novoStatus}`);
+}
+
+/* ════════════════════════════════════════
+   PREÇOS DO CATÁLOGO (admin)
+════════════════════════════════════════ */
+
+// Carrega preços salvos no Supabase config e atualiza CATALOGO em memória
+async function carregarPrecosSalvos() {
+  try {
+    const { data } = await supabaseClient.from('config').select('*');
+    if (data) {
+      data.forEach(row => {
+        const prod = CATALOGO.find(c => c.linha === row.chave);
+        if (prod && row.valor) prod.preco = parseFloat(row.valor);
+      });
+    }
+  } catch(e) {
+    // tabela config ainda não existe — usa preços padrão do CATALOGO
+    console.log('Config table not found, using default prices.');
+  }
+}
+
+function renderPainelPrecos() {
+  const list = document.getElementById('priceCardsList');
+  list.innerHTML = '';
+  CATALOGO.forEach(prod => {
+    list.innerHTML += `
+      <div class="price-card">
+        <div class="price-card-info">
+          <span class="price-card-emoji">${prod.emoji}</span>
+          <div class="price-card-name">${prod.nome}</div>
+          <div class="price-card-desc">${prod.desc}</div>
+        </div>
+        <div>
+          <div class="price-label" style="margin-bottom:6px">Preço de venda ao cliente (R$)</div>
+          <div class="price-input-wrap">
+            <span style="color:var(--green);font-weight:700;font-size:16px">R$</span>
+            <input id="priceInput_${prod.linha}" type="number" step="0.01" min="0"
+              value="${prod.preco.toFixed(2)}"
+              style="width:120px;font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--green)">
+          </div>
+        </div>
+      </div>`;
+  });
+}
+
+async function salvarPrecos() {
+  const msg = document.getElementById('precoSavedMsg');
+  msg.style.display = 'none';
+  for (const prod of CATALOGO) {
+    const input = document.getElementById('priceInput_' + prod.linha);
+    if (!input) continue;
+    const novoPreco = parseFloat(input.value);
+    if (isNaN(novoPreco) || novoPreco <= 0) { showToast('Preço inválido para ' + prod.nome, '⚠️'); return; }
+    prod.preco = novoPreco;
+    // Upsert na tabela config
+    await supabaseClient.from('config').upsert({ chave: prod.linha, valor: novoPreco }, { onConflict: 'chave' });
+  }
+  msg.style.display = 'inline';
+  showToast('Preços atualizados com sucesso!');
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+}
+
+/* ════════════════════════════════════════
+   REALTIME NOTIFICATIONS (admin)
+════════════════════════════════════════ */
+
+function iniciarRealtimePedidos() {
+  if (realtimeSub) return;
+  realtimeSub = supabaseClient
+    .channel('pedidos-admin')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, payload => {
+      mostrarNotifPedido(payload.new);
+    })
+    .subscribe();
+}
+
+function mostrarNotifPedido(pedido) {
+  // Toca som de notificação (beep simples via AudioContext)
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+  } catch(e) {}
+
+  const itens = JSON.parse(pedido.itens || '[]');
+  const itensTexto = itens.map(i => `• ${i.nome} · ${i.sabor} ×${i.qty}`).join('<br>');
+  const total = parseFloat(pedido.total || 0).toFixed(2);
+  const cliente = `${pedido.cliente_nome || ''} ${pedido.cliente_sobrenome || ''}`.trim();
+  const wa = pedido.cliente_whatsapp || '';
+
+  document.getElementById('notifBody').innerHTML = `
+    <strong>Pedido ${pedido.numero_pedido}</strong><br>
+    👤 ${cliente}${wa ? ` · <a href="https://wa.me/55${wa.replace(/\D/g,'')}" target="_blank" style="color:var(--green)">${wa}</a>` : ''}<br>
+    ${itensTexto}<br>
+    💰 <strong>R$ ${total}</strong> · ${pedido.pagamento || ''}
+  `;
+
+  // Links de WA para Diego e Lucas com detalhes do pedido
+  const msgWA = encodeURIComponent(
+    `🌊 Novo Pedido WavePod\nPedido: ${pedido.numero_pedido}\nCliente: ${cliente} (${wa})\n` +
+    itens.map(i => `• ${i.nome} - ${i.sabor} x${i.qty}`).join('\n') +
+    `\nTotal: R$ ${total} (${pedido.pagamento})`
+  );
+  document.getElementById('notifWaDiego').href = `https://wa.me/5511958438636?text=${msgWA}`;
+  document.getElementById('notifWaLucas').href = `https://wa.me/5511978378289?text=${msgWA}`;
+
+  document.getElementById('notifOverlay').classList.remove('hidden');
+}
+
+function fecharNotif() {
+  document.getElementById('notifOverlay').classList.add('hidden');
+}
+
+function irParaPedidos() {
+  fecharNotif();
+  trocarTela('pedidos');
+}
+
+/* ════════════════════════════════════════
+   WHATSAPP FLUTUANTE (cliente)
+════════════════════════════════════════ */
+function toggleWaContacts() {
+  document.getElementById('waContacts').classList.toggle('hidden');
 }
 
 /* ════════════════════════════════════════
    PORTAL DO CLIENTE
 ════════════════════════════════════════ */
 
-function iniciarCliente() {
+async function iniciarCliente() {
+  // Carrega preços salvos pelo admin
+  await carregarPrecosSalvos();
+  // Carrega estoque para limitar carrinho
+  await carregarEstoqueCliente();
   renderCatalogo();
+}
+
+/* ── ESTOQUE (cliente - somente leitura) ── */
+async function carregarEstoqueCliente() {
+  estoqueMap = {};
+  try {
+    const { data: produtos } = await supabaseClient.from('produtos').select('nome, quantidade');
+    if (produtos) {
+      produtos.forEach(p => {
+        const linhaKey = p.nome.toLowerCase().includes('v80') || p.nome.toLowerCase().includes('ignite') ? 'v80' : 'elfbar';
+        estoqueMap[linhaKey] = (estoqueMap[linhaKey] || 0) + (p.quantidade || 0);
+      });
+    }
+  } catch(e) { console.log('Erro ao carregar estoque:', e); }
 }
 
 /* ── CATÁLOGO ── */
 function renderCatalogo() {
   CATALOGO.forEach(prod => {
     const container = document.getElementById(prod.linha === 'v80' ? 'cardsV80' : 'cardsElfbar');
+    const estoqueDisp = estoqueMap[prod.linha] || 0;
+    const esgotado = estoqueDisp === 0;
+    const baixo = estoqueDisp > 0 && estoqueDisp <= 3;
+    const stockBadge = esgotado
+      ? `<span class="stock-badge stock-out">Esgotado</span>`
+      : baixo
+      ? `<span class="stock-badge stock-low">Últimas unidades</span>`
+      : `<span class="stock-badge stock-ok">Disponível</span>`;
 
     prod.sabores.forEach(sabor => {
       const cardId = `card_${prod.linha}_${sabor.replace(/\s+/g,'_')}`;
@@ -1650,16 +2034,17 @@ function renderCatalogo() {
           <p class="product-card-name">${prod.nome}</p>
           <p class="product-card-desc">${prod.desc}</p>
           <div class="product-card-price">R$ ${prod.preco.toFixed(2).replace('.',',')}</div>
+          ${stockBadge}
         </div>
         <div class="product-card-body">
           <span class="flavor-label">🍃 Sabor</span>
           <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text)">${sabor}</div>
           <div class="qty-row">
-            <button class="qty-btn" onclick="alterarQty('${cardId}', -1)">−</button>
+            <button class="qty-btn" onclick="alterarQty('${cardId}', -1, '${prod.linha}')" ${esgotado?'disabled':''}>−</button>
             <div class="qty-display" id="qty_${cardId}">0</div>
-            <button class="qty-btn" onclick="alterarQty('${cardId}', 1)">+</button>
-            <button class="add-btn" id="addbtn_${cardId}" onclick="adicionarAoCarrinho('${cardId}', '${prod.linha}', '${prod.nome}', '${sabor}', ${prod.preco})">
-              + Adicionar
+            <button class="qty-btn" onclick="alterarQty('${cardId}', 1, '${prod.linha}')" ${esgotado?'disabled':''}>+</button>
+            <button class="add-btn" id="addbtn_${cardId}" onclick="adicionarAoCarrinho('${cardId}', '${prod.linha}', '${prod.nome}', '${sabor}', ${prod.preco})" ${esgotado?'disabled':''}>
+              ${esgotado ? 'Esgotado' : '+ Adicionar'}
             </button>
           </div>
         </div>
@@ -1669,11 +2054,20 @@ function renderCatalogo() {
   });
 }
 
-function alterarQty(cardId, delta) {
+function alterarQty(cardId, delta, linha) {
   const el = document.getElementById('qty_' + cardId);
   if (!el) return;
   let v = parseInt(el.textContent) + delta;
   if (v < 0) v = 0;
+  // Limitar pelo estoque disponível da linha
+  const maxEstoque = estoqueMap[linha] || 0;
+  const jaNoCarrinho = cart.filter(i => i.linha === linha).reduce((acc, i) => acc + i.qty, 0);
+  const maxPermitido = Math.max(0, maxEstoque - jaNoCarrinho);
+  if (v > maxPermitido) {
+    v = maxPermitido;
+    if (maxPermitido === 0) showToast('Estoque insuficiente para mais unidades', '⚠️');
+    else showToast(`Máximo disponível: ${maxPermitido} unidade${maxPermitido !== 1 ? 's' : ''}`, '⚠️');
+  }
   el.textContent = v;
 }
 
@@ -1812,7 +2206,7 @@ async function finalizarPedido() {
 async function notificarWhatsApp(numPedido, nome, sobrenome, waCliente, itens, total, pagamento) {
   const itensTexto = itens.map(i => `• ${i.nome} - ${i.sabor} x${i.qty}`).join('%0A');
   const msg = encodeURIComponent(
-    `*Novo Pedido WavePod*\n` +
+    `🌊 *Novo Pedido WavePod*\n` +
     `Pedido: *${numPedido}*\n` +
     `Cliente: ${nome} ${sobrenome}\n` +
     `WhatsApp: ${waCliente}\n\n` +
@@ -1840,7 +2234,7 @@ async function notificarWhatsApp(numPedido, nome, sobrenome, waCliente, itens, t
   // Fallback: abrir WhatsApp para o admin (sempre funciona)
   setTimeout(() => {
     const waMsg = encodeURIComponent(
-      `Novo Pedido WavePod\n` +
+      `🌊 Novo Pedido WavePod\n` +
       `Pedido: ${numPedido}\n` +
       `Cliente: ${nome} ${sobrenome} (${waCliente})\n` +
       itens.map(i => `• ${i.nome} - ${i.sabor} x${i.qty}`).join('\n') +
@@ -1851,3 +2245,6 @@ async function notificarWhatsApp(numPedido, nome, sobrenome, waCliente, itens, t
 }
 
 </script>
+
+</body>
+</html>
