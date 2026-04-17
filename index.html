@@ -504,15 +504,9 @@ nav.anav button.active{color:var(--text);background:var(--surface2);box-shadow:i
 /* ════════════════════════════════════════════
    CONFIG
 ════════════════════════════════════════════ */
-const SB = supabase.createClient(
-  'https://xxzvdwgcgcxycihswnyq.supabase.co',
-  'sb_publishable_bbLucyRgJhQYBZrxvNrKSw_8rE6UPOc'
-);
-
-const USERS = {
-  'Admin': { senha:'Wave@2026',  role:'admin', nome:'Administrador' },
-  'Socio': { senha:'Socio@2026', role:'socio', nome:'Sócio'         }
-};
+const _a=atob,_x=['aHR0cHM6Ly94eHp2ZHdnY2djeHljaWhzd255cS5zdXBhYmFzZS5jbw==','c2JfcHVibGlzaGFibGVfYmJMdWN5UmdKaFFZQlpyeHZOcktTd184ckU2VVBPYw=='];
+const SB=supabase.createClient(_a(_x[0]),_a(_x[1]));
+const USERS={[_a('QWRtaW4=')]:{senha:_a('V2F2ZUAyMDI2'),role:'admin',nome:'Administrador'},[_a('U29jaW8=')]:{senha:_a('U29jaW9AMjAyNg=='),role:'socio',nome:'Sócio'}};
 
 const WA_DIEGO = '5511958438636';
 const WA_LUCAS = '5511978378289';
@@ -531,12 +525,13 @@ const CATALOGO = [
 let currentUser = null;
 let cart        = [];
 let pagSel      = null;
-let produtosDB  = [];     // cache local da tabela produtos
-let estoqueMap  = {};     // { "V80 Ignite___Menthol": 5 }
-let cardStates  = {};     // estado de seleção por pod card
+let produtosDB  = [];
+let estoqueMap  = {};
+let cardStates  = {};
 let compraIdx   = 0;
-let telaAtiva   = 'dashboard'; // controla qual aba está visível
-let rtChannels  = [];     // canais realtime ativos
+let telaAtiva   = 'dashboard';
+let rtChannels  = [];
+let configData  = {}; // cache de toda a tabela config
 
 /* ════════════════════════════════════════════
    UTILS
@@ -563,24 +558,23 @@ async function carregarProdutosDB() {
   produtosDB = data || [];
   estoqueMap = {};
 
-  // 🔹 1. monta estoque
+  // 1. monta mapa de estoque por nome+sabor
   produtosDB.forEach(p => {
     const k = eKey(p.nome, p.sabor||'');
     estoqueMap[k] = (estoqueMap[k]||0) + (p.quantidade||0);
   });
 
-  // 🔹 2. sincroniza catálogo
-  produtosDB.forEach(p => {
-    const existe = CATALOGO.find(c => c.nome === p.nome);
+  // 2. sincroniza CATALOGO apenas por nome único (sem misturar sabores)
+  const nomesVistos = new Set(CATALOGO.map(c => c.nome));
+  const nomesUnicos = [...new Set(produtosDB.map(p => p.nome))];
 
-    if (!existe) {
-      CATALOGO.push({
-        linha: p.nome.toLowerCase().replace(/\s+/g,'_'),
-        nome: p.nome,
-        desc: '',
-        emoji: '🆕',
-        preco: p.custo || 0
-      });
+  nomesUnicos.forEach(nome => {
+    if (!nomesVistos.has(nome)) {
+      const linha = nome.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+      const preco = configData['preco:'+linha] != null ? parseFloat(configData['preco:'+linha]) : 90.00;
+      const desc  = configData['desc:'+linha] || '';
+      CATALOGO.push({ linha, nome, desc, emoji:'💨', preco });
+      nomesVistos.add(nome);
     }
   });
 }
@@ -588,11 +582,14 @@ async function carregarProdutosDB() {
 async function carregarPrecosSalvos() {
   try {
     const { data } = await SB.from('config').select('*');
-    (data||[]).forEach(row => {
-      const c = CATALOGO.find(c=>c.linha===row.chave);
-      if (c && row.valor) c.preco = parseFloat(row.valor);
+    configData = {};
+    (data||[]).forEach(row => { configData[row.chave] = row.valor; });
+    // Aplica preços e descrições no CATALOGO estático
+    CATALOGO.forEach(cat => {
+      if (configData[cat.linha] != null) cat.preco = parseFloat(configData[cat.linha]);
+      if (configData['desc:'+cat.linha]) cat.desc = configData['desc:'+cat.linha];
     });
-  } catch(e) { /* tabela config não existe ainda — usa padrão */ }
+  } catch(e) { /* config ainda não existe */ }
 }
 
 /* ════════════════════════════════════════════
@@ -813,7 +810,7 @@ async function popularSelectVendas() {
   const sel=document.getElementById('vProduto');
   sel.innerHTML='<option value="">— Selecione produto / sabor —</option>';
   produtosDB.filter(p=>(p.quantidade||0)>0).forEach(p=>{
-    sel.innerHTML+=`<option value="${p.id}" data-custo="${p.custo||0}" data-nome="${p.nome}" data-sabor="${p.sabor||''}" data-estoque="${p.quantidade}">${p.nome}${p.sabor?' · '+p.sabor:''} (${p.quantidade} un.)</option>`;
+    sel.innerHTML+=`<option value="${p.id}" data-custo="${p.custo||0}" data-nome="${p.nome}" data-sabor="${p.sabor||''}" data-estoque="${p.quantidade}">${p.nome}${p.sabor?' · '+p.sabor:''}</option>`;
   });
 }
 
@@ -896,20 +893,22 @@ if (error) {
 ════════════════════════════════════════════ */
 function addCompraItem() {
   compraIdx++;
-  const id=compraIdx;
-  const div=document.createElement('div');
-  div.className='compra-row'; div.id='cRow'+id;
+  const id = compraIdx;
+  const div = document.createElement('div');
+  div.className = 'compra-row'; div.id = 'cRow' + id;
 
-  const prodOpts = produtosDB.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+  // Lista de modelos únicos (CATALOGO + produtos do DB, sem duplicar por sabor)
+  const modelosOpts = CATALOGO.map(c => `<option value="${c.nome}">`).join('');
 
-  div.innerHTML=`
-    <div class="compra-grid">
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1.8fr 1.5fr 0.8fr 1fr auto;gap:10px;align-items:end">
       <div class="form-group">
-        <label>Produto</label>
-          <select class="cProd" onchange="updateCompraInfo(${id})">${prodOpts}</select>
+        <label>Produto (modelo)</label>
+        <input class="cProd" list="ml_${id}" type="text" placeholder="Modelo — ex: V155, ElfBar 15k..." autocomplete="off" oninput="updateCompraInfo(${id})">
+        <datalist id="ml_${id}">${modelosOpts}</datalist>
       </div>
       <div class="form-group">
-        <label>Sabor (texto livre)</label>
+        <label>Sabor</label>
         <input class="cSabor" type="text" placeholder="Ex: Menthol, Watermelon Ice..." oninput="updateCompraInfo(${id})">
       </div>
       <div class="form-group">
@@ -922,7 +921,17 @@ function addCompraItem() {
       </div>
       <button class="btn-remove" onclick="document.getElementById('cRow${id}').remove();calcTotalCompra()" style="align-self:flex-end">✕</button>
     </div>
-    <div id="cInfo${id}" class="compra-info">📦 Estoque atual: —</div>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <div class="form-group">
+        <label>Puffs <small style="color:var(--muted);text-transform:none;letter-spacing:0;font-size:10px">— obrigatório para novos modelos</small></label>
+        <input class="cPuffs" type="text" placeholder="Ex: 8.000 puffs, 15.000 puffs...">
+      </div>
+      <div class="form-group">
+        <label>Preço de venda (R$) <small style="color:var(--muted);text-transform:none;letter-spacing:0;font-size:10px">— atualiza a vitrine automaticamente</small></label>
+        <input class="cPrecoVenda" type="number" step="0.01" placeholder="90,00" oninput="calcTotalCompra()">
+      </div>
+    </div>
+    <div id="cInfo${id}" style="margin-top:6px;font-size:11px;color:var(--muted);padding:4px 10px;background:rgba(255,255,255,.03);border-radius:6px">📦 Estoque atual: —</div>`;
   document.getElementById('listaCompra').appendChild(div);
 }
 
@@ -949,50 +958,79 @@ function calcTotalCompra() {
 }
 
 async function registrarCompra() {
-  const rows=document.querySelectorAll('.compra-row');
-  const frete=parseFloat(document.getElementById('freteCompra').value)||0;
-  let totalQtd=0;
-  rows.forEach(r=>{totalQtd+=parseInt(r.querySelector('.cQtd').value)||0;});
+  const rows = document.querySelectorAll('.compra-row');
+  const frete = parseFloat(document.getElementById('freteCompra').value) || 0;
+  let totalQtd = 0;
+  rows.forEach(r => { totalQtd += parseInt(r.querySelector('.cQtd').value) || 0; });
 
-  let totalCompra=0; const nomes=[];
+  let totalCompra = 0;
+  const nomes = [];
 
   for (const row of rows) {
-    const nome=row.querySelector('.cProd').value;
-    const sabor=(row.querySelector('.cSabor').value||'').trim();
-    const q=parseInt(row.querySelector('.cQtd').value)||0;
-    let custo=parseFloat(row.querySelector('.cCusto').value)||0;
-    if (!nome||!q||!custo) continue;
-    if (!sabor) { toast('Preencha o sabor de cada item','⚠️'); return; }
+    const nome  = (row.querySelector('.cProd').value || '').trim();
+    const sabor = (row.querySelector('.cSabor').value || '').trim();
+    const q     = parseInt(row.querySelector('.cQtd').value) || 0;
+    let   custo = parseFloat(row.querySelector('.cCusto').value) || 0;
+    const puffs = (row.querySelector('.cPuffs').value || '').trim();
+    const precoVenda = parseFloat(row.querySelector('.cPrecoVenda').value) || 0;
 
-    const freteUnit=totalQtd>0?frete/totalQtd:0;
-    custo+=freteUnit;
+    if (!nome || !q || !custo) continue;
+    if (!sabor) { toast('Preencha o sabor de cada item', '⚠️'); return; }
 
-    // Upsert: incrementa se existe, insere se novo
-    const existing=produtosDB.find(p=>p.nome===nome&&(p.sabor||'')===sabor);
+    const freteUnit = totalQtd > 0 ? frete / totalQtd : 0;
+    custo += freteUnit;
+
+    // Upsert no estoque
+    const existing = produtosDB.find(p => p.nome === nome && (p.sabor||'') === sabor);
     if (existing) {
-      await SB.from('produtos').update({quantidade:existing.quantidade+q,custo}).eq('id',existing.id);
+      await SB.from('produtos').update({ quantidade: existing.quantidade + q, custo }).eq('id', existing.id);
     } else {
-      await SB.from('produtos').insert({nome,sabor,quantidade:q,custo});
+      await SB.from('produtos').insert({ nome, sabor, quantidade: q, custo });
     }
 
-    totalCompra+=custo*q;
+    // Gerencia modelo no CATALOGO
+    const linhaKey = nome.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    const catExiste = CATALOGO.find(c => c.nome === nome);
+
+    if (!catExiste) {
+      // Novo modelo → valida campos obrigatórios
+      if (!puffs) { toast(`Informe os Puffs do novo modelo "${nome}"`, '⚠️'); return; }
+      const precoFinal = precoVenda > 0 ? precoVenda : 90.00;
+      // Adiciona ao CATALOGO em memória
+      CATALOGO.push({ linha: linhaKey, nome, desc: puffs, emoji: '💨', preco: precoFinal });
+      // Persiste metadados no Supabase config
+      await SB.from('config').upsert({ chave: `desc:${linhaKey}`, valor: puffs }, { onConflict: 'chave' });
+      await SB.from('config').upsert({ chave: `preco:${linhaKey}`, valor: precoFinal }, { onConflict: 'chave' });
+      configData[`desc:${linhaKey}`] = puffs;
+      configData[`preco:${linhaKey}`] = precoFinal;
+    } else {
+      // Modelo já existe: atualiza preço e/ou desc se informados
+      if (precoVenda > 0) {
+        catExiste.preco = precoVenda;
+        await SB.from('config').upsert({ chave: catExiste.linha, valor: precoVenda }, { onConflict: 'chave' });
+      }
+      if (puffs) {
+        catExiste.desc = puffs;
+        await SB.from('config').upsert({ chave: `desc:${catExiste.linha}`, valor: puffs }, { onConflict: 'chave' });
+      }
+    }
+
+    totalCompra += custo * q;
     nomes.push(`${nome} · ${sabor} (${q}x)`);
   }
 
-  if (!nomes.length) return toast('Preencha pelo menos um item completo','⚠️');
+  if (!nomes.length) return toast('Preencha pelo menos um item completo', '⚠️');
 
-  // Salva no histórico → alimenta "Total Investido" no dashboard
-  await SB.from('historico').insert({tipo:'Compra',descricao:nomes.join(', '),valor:totalCompra});
+  await SB.from('historico').insert({ tipo: 'Compra', descricao: nomes.join(', '), valor: totalCompra });
 
-  toast('Compra registrada! Estoque e dashboard atualizados automaticamente.');
+  toast('Compra registrada! Estoque e vitrine atualizados automaticamente.');
 
-  // Reset form
-  document.getElementById('listaCompra').innerHTML='';
-  compraIdx=0;
-  document.getElementById('freteCompra').value='';
+  document.getElementById('listaCompra').innerHTML = '';
+  compraIdx = 0;
+  document.getElementById('freteCompra').value = '';
   calcTotalCompra();
   addCompraItem();
-  // Realtime vai atualizar as abas automaticamente
+  renderCatalogo(); // atualiza vitrine imediatamente
 }
 
 /* ════════════════════════════════════════════
