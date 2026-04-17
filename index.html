@@ -906,10 +906,7 @@ function addCompraItem() {
     <div class="compra-grid">
       <div class="form-group">
         <label>Produto</label>
-        <div style="display:flex; gap:8px;">
-  <select class="cProd" onchange="updateCompraInfo(${id})">${prodOpts}</select>
-  <button type="button" onclick="novoProdutoPrompt()">+</button>
-</div>
+          <select class="cProd" onchange="updateCompraInfo(${id})">${prodOpts}</select>
       </div>
       <div class="form-group">
         <label>Sabor (texto livre)</label>
