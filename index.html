@@ -838,8 +838,20 @@ async function registrarVenda() {
   const nome=opt.dataset.nome, sabor=opt.dataset.sabor, custo=parseFloat(opt.dataset.custo)||0;
 
   // 1. Inserir venda
-  const {error}=await SB.from('vendas').insert({produto_id:id,quantidade:q,preco_venda:preco,nome_produto:nome,sabor_produto:sabor,custo_unitario:custo});
-  if (error) { console.error(error); return toast('Erro ao registrar venda','⚠️'); }
+ const { error } = await SB.from('vendas').insert({
+  produto_id: id,
+  quantidade: q,
+  preco_venda: preco,
+  nome_produto: nome,
+  sabor_produto: sabor,
+  data: new Date().toISOString()
+})
+
+if (error) {
+  console.error("ERRO:", error)
+  alert(error.message)
+  return
+}
 
   // 2. Decrementar estoque
   const {data:prod}=await SB.from('produtos').select('quantidade').eq('id',id).single();
