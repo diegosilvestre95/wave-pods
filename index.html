@@ -559,11 +559,29 @@ function toast(msg, icon='✓', dur=3000) {
 async function carregarProdutosDB() {
   const { data, error } = await SB.from('produtos').select('*').order('nome');
   if (error) { console.error('produtos:', error); return; }
+
   produtosDB = data || [];
   estoqueMap = {};
+
+  // 🔹 1. monta estoque
   produtosDB.forEach(p => {
     const k = eKey(p.nome, p.sabor||'');
     estoqueMap[k] = (estoqueMap[k]||0) + (p.quantidade||0);
+  });
+
+  // 🔹 2. sincroniza catálogo
+  produtosDB.forEach(p => {
+    const existe = CATALOGO.find(c => c.nome === p.nome);
+
+    if (!existe) {
+      CATALOGO.push({
+        linha: p.nome.toLowerCase().replace(/\s+/g,'_'),
+        nome: p.nome,
+        desc: '',
+        emoji: '🆕',
+        preco: p.custo || 0
+      });
+    }
   });
 }
 
