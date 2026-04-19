@@ -421,8 +421,7 @@ nav.anav button.active{color:var(--text);background:var(--surface2);box-shadow:i
     <h2 class="section-title">Registrar compra</h2>
     <div class="card" style="max-width:900px">
       <p style="color:var(--muted);font-size:13px;margin:0 0 16px;line-height:1.6">
-        Adicione cada item com produto, sabor (texto livre) e quantidade.
-        O estoque é atualizado automaticamente e o valor entra como investimento no dashboard.
+        Selecione o <strong style="color:var(--text)">modelo</strong> — se já existir, puffs e preço são preenchidos automaticamente. Informe apenas o <strong style="color:var(--text)">sabor</strong>, a <strong style="color:var(--text)">quantidade</strong> e o <strong style="color:var(--text)">custo</strong>.
       </p>
       <div id="listaCompra"></div>
       <button class="btn-ghost" onclick="addCompraItem()" style="margin-top:4px">+ Adicionar item</button>
@@ -476,6 +475,9 @@ nav.anav button.active{color:var(--text);background:var(--surface2);box-shadow:i
       </div>
     </div>
     <div class="card">
+      <p style="color:var(--muted);font-size:13px;margin:0 0 16px;line-height:1.6;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.18);border-radius:var(--radius-sm)">
+        ⚠️ <strong style="color:var(--amber)">Regra de estoque:</strong> o estoque e o dashboard <strong style="color:var(--text)">só são alterados quando você confirmar</strong> o pedido. Pedidos Pendentes não afetam nada. Ao cancelar um pedido já confirmado, o estoque é revertido automaticamente.
+      </p>
       <div class="table-wrap">
         <table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>WhatsApp</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Data</th><th>Contato</th></tr></thead><tbody id="tblPedidos"></tbody></table>
       </div>
@@ -726,7 +728,7 @@ async function carregarDashboard() {
     { data: produtos }
   ] = await Promise.all([
     SB.from('vendas').select('*'),
-    SB.from('pedidos').select('total,status').neq('status','Cancelado'),
+    SB.from('pedidos').select('total,status').neq('status','Cancelado').neq('status','Pendente'),
     SB.from('historico').select('valor').eq('tipo','Compra'),
     SB.from('produtos').select('*')
   ]);
@@ -904,7 +906,7 @@ function addCompraItem() {
     <div style="display:grid;grid-template-columns:1.8fr 1.5fr 0.8fr 1fr auto;gap:10px;align-items:end">
       <div class="form-group">
         <label>Produto (modelo)</label>
-        <input class="cProd" list="ml_${id}" type="text" placeholder="Modelo — ex: V155, ElfBar 15k..." autocomplete="off" oninput="updateCompraInfo(${id})">
+        <input class="cProd" list="ml_${id}" type="text" placeholder="Modelo — ex: V155, ElfBar 15k..." autocomplete="off" oninput="onProdInput(${id})" onchange="onProdInput(${id})">
         <datalist id="ml_${id}">${modelosOpts}</datalist>
       </div>
       <div class="form-group">
@@ -933,6 +935,24 @@ function addCompraItem() {
     </div>
     <div id="cInfo${id}" style="margin-top:6px;font-size:11px;color:var(--muted);padding:4px 10px;background:rgba(255,255,255,.03);border-radius:6px">📦 Estoque atual: —</div>`;
   document.getElementById('listaCompra').appendChild(div);
+}
+
+function onProdInput(id) {
+  const row = document.getElementById('cRow' + id);
+  if (!row) return;
+  const nomeVal = (row.querySelector('.cProd').value || '').trim();
+  const catExiste = CATALOGO.find(c => c.nome === nomeVal);
+  if (catExiste) {
+    // Preenche puffs e preço de venda com os dados do modelo existente
+    const puffsInput = row.querySelector('.cPuffs');
+    const precoInput = row.querySelector('.cPrecoVenda');
+    if (puffsInput && !puffsInput.value) puffsInput.value = catExiste.desc || '';
+    if (precoInput && !precoInput.value) precoInput.value = catExiste.preco ? catExiste.preco.toFixed(2) : '';
+    // Foca no campo sabor para facilitar o fluxo
+    const saborInput = row.querySelector('.cSabor');
+    if (saborInput && !saborInput.value) setTimeout(() => saborInput.focus(), 50);
+  }
+  updateCompraInfo(id);
 }
 
 function updateCompraInfo(id) {
@@ -1071,9 +1091,51 @@ async function carregarPedidos() {
 
 async function updateStatus(id,sel) {
   const s=sel.value;
+  const prevClass = sel.className;
   sel.className='status-select '+(s==='Confirmado'?'status-conf':s==='Cancelado'?'status-canc':'status-pend');
+
+  // Busca pedido atual para saber status anterior
+  const {data:pedidoAtual}=await SB.from('pedidos').select('*').eq('id',id).single();
+  const statusAnterior = pedidoAtual?.status || '';
+
   await SB.from('pedidos').update({status:s}).eq('id',id);
-  toast(`Status: ${s}`);
+
+  // Ao CONFIRMAR: decrementa estoque e registra receita no dashboard
+  if (s==='Confirmado' && statusAnterior!=='Confirmado') {
+    await carregarProdutosDB();
+    const itens = JSON.parse(pedidoAtual.itens||'[]');
+    for (const item of itens) {
+      let restante=item.qty;
+      const prods=produtosDB.filter(p=>p.nome===item.nome&&(p.sabor||'')===item.sabor&&p.quantidade>0);
+      for (const prod of prods) {
+        if (restante<=0) break;
+        const dec=Math.min(prod.quantidade,restante);
+        await SB.from('produtos').update({quantidade:prod.quantidade-dec}).eq('id',prod.id);
+        restante-=dec;
+      }
+    }
+    const numPedido = pedidoAtual.numero_pedido;
+    const nomeCliente = `${pedidoAtual.cliente_nome||''} ${pedidoAtual.cliente_sobrenome||''}`.trim();
+    await SB.from('historico').insert({tipo:'Pedido',descricao:`${numPedido} · ${nomeCliente} · ${pedidoAtual.pagamento}`,valor:pedidoAtual.total});
+    toast(`✅ Pedido confirmado! Estoque e dashboard atualizados.`);
+  }
+  // Ao CANCELAR um pedido que estava Confirmado: reverte estoque e remove do histórico
+  else if (s==='Cancelado' && statusAnterior==='Confirmado') {
+    await carregarProdutosDB();
+    const itens = JSON.parse(pedidoAtual.itens||'[]');
+    for (const item of itens) {
+      const prods=produtosDB.filter(p=>p.nome===item.nome&&(p.sabor||'')===item.sabor);
+      if (prods.length>0) {
+        await SB.from('produtos').update({quantidade:prods[0].quantidade+item.qty}).eq('id',prods[0].id);
+      }
+    }
+    // Remove entrada do histórico referente a este pedido
+    await SB.from('historico').delete().eq('descricao', `${pedidoAtual.numero_pedido} · ${(`${pedidoAtual.cliente_nome||''} ${pedidoAtual.cliente_sobrenome||''}`).trim()} · ${pedidoAtual.pagamento}`).eq('tipo','Pedido');
+    toast(`🔄 Pedido cancelado. Estoque revertido.`,'⚠️');
+  }
+  else {
+    toast(`Status: ${s}`);
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -1237,8 +1299,8 @@ function selecionarSabor(linha, sabor, prodId) {
 
   cardStates[linha].saborSel=sabor;
   cardStates[linha].saborId=prodId;
-  cardStates[linha].qty=0;
-  document.getElementById('qnum-'+linha).textContent='0';
+  cardStates[linha].qty=1;
+  document.getElementById('qnum-'+linha).textContent='1';
 
   // Atualiza chips
   document.querySelectorAll(`[id^="chip_${linha}_"]`).forEach(chip=>{chip.classList.remove('sel')});
@@ -1372,31 +1434,11 @@ async function finalizarPedido() {
     btn.disabled=false; btn.textContent='Finalizar Pedido →'; return;
   }
 
-  // Decrementar estoque para cada item
-  await carregarProdutosDB();
-  for (const item of cart) {
-    let restante=item.qty;
-    const prods=produtosDB.filter(p=>p.nome===item.nome&&(p.sabor||'')===item.sabor&&p.quantidade>0);
-    for (const prod of prods) {
-      if (restante<=0) break;
-      const dec=Math.min(prod.quantidade,restante);
-      await SB.from('produtos').update({quantidade:prod.quantidade-dec}).eq('id',prod.id);
-      restante-=dec;
-    }
-  }
-
-  // Histórico (aparece na receita do dashboard)
-  await SB.from('historico').insert({tipo:'Pedido',descricao:`${numPedido} · ${nome} ${sobre} · ${pagSel}`,valor:total});
-
   document.getElementById('sucNumero').textContent=numPedido;
   document.getElementById('vitCheckout').classList.add('hidden');
   document.getElementById('vitSucesso').classList.remove('hidden');
   cart=[]; pagSel=null;
   btn.disabled=false; btn.textContent='Finalizar Pedido →';
-
-  // Atualiza estoque e catálogo
-  await carregarProdutosDB();
-  renderCatalogo();
 }
 </script>
 </body>
